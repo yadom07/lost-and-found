@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Campus Lost & Found</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <button class="icon-button" aria-label="Menu">
+      ☰
+    </button>
+
+    <div class="topbar-title">
+      Campus Lost &amp; Found
+    </div>
+
+    <div class="topbar-actions">
+      <button class="primary-button" onclick="location.href='post-form.html'">
+        + Post
+      </button>
+      <button class="icon-button circle" aria-label="Profile">
+        👤
+      </button>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <section class="filter-row">
+      <button class="chip active" data-filter="lost">Lost</button>
+      <button class="chip" data-filter="found">Found</button>
+    </section>
+
+  
+    <section class="card-grid" id="itemGrid">
+    </section>
+
+  </main>
+  <script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

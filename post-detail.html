@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <title>Item Detail - Campus Lost & Found</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <button class="icon-button" onclick="history.back()" aria-label="Back">←</button>
+    <div class="topbar-title">Item Detail</div>
+  </header>
+
+  <main class="page">
+  
+    <section class="detail-layout">
+      <div class="detail-image placeholder" id="itemImage"></div>  
+
+      <div class="detail-info">
+        <h1 id="itemTitle">Loading...</h1>
+        <p id="itemMeta">Loading...</p>
+        <p id="itemDescription">Loading...</p>
+      </div>
+    </section>
+
+    
+    <section class="map-section">
+      <h2 class="section-title">Approximate Location</h2>
+      <div id="map"></div>
+    </section>
+  </main>
+
+  <script type="module" src="js/post-detail.js"></script>
+</body>
+</html>

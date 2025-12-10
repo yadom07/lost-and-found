@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Post</title>
+</head>
+<body>
+  <h1>Create Post</h1>
+
+  <form id="postForm">
+    <label>Title:</label><br>
+    <input type="text" id="title" placeholder="Item title" required /><br><br>
+
+    <label>Type:</label><br>
+    <select id="type" required>
+      <option value="lost">Lost</option>
+      <option value="found">Found</option>
+    </select><br><br>
+
+    <label>Location:</label><br>
+    <input type="text" id="location" placeholder="Where was it lost/found?" required /><br><br>
+
+    <label>Description:</label><br>
+    <textarea id="description" placeholder="Describe the item" required></textarea><br><br>
+
+    <label>Upload Image (optional):</label>
+    <input type="file" id="image" accept="image/*">
+    
+    <button type="submit">Submit</button>
+  </form>
+
+  <script type="module">
+    import { db } from "./js/firebase.js";
+    import { collection, addDoc, serverTimestamp } 
+      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+
+    const form = document.getElementById("postForm");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const title = document.getElementById("title").value;
+      const type = document.getElementById("type").value;
+      const location = document.getElementById("location").value;
+      const description = document.getElementById("description").value;
+
+      await addDoc(collection(db, "posts"), {
+        title,
+        type,
+        location,
+        description,
+        createdAt: serverTimestamp()
+      });
+
+      alert("Post created!");
+      window.location.href = "index.html";
+    });
+  </script>
+</body>
+</html>
