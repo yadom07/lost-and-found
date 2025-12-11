@@ -26,20 +26,31 @@ async function load() {
   }
 
   // แสดงแผนที่
-  let defaultLat = 13.6517;
-  let defaultLng = 100.4940;
-  
+  const DEFAULT_LAT = 13.651021207238946;
+  const DEFAULT_LNG = 100.49538731575014;
+
+  let lat = DEFAULT_LAT;
+  let lng = DEFAULT_LNG;
+
   if (post.location) {
-    const [lat, lng] = post.location.split(",").map(Number);
-    const map = L.map('map').setView([lat, lng], 16);
+    const parts = post.location.split(",").map(Number);
+    if (!isNaN(parts[0]) && !isNaN(parts[1])) {
+      lat = parts[0];
+      lng = parts[1];
+    }
+  }
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-    }).addTo(map);
+  // สร้างแผนที่ด้วยค่า lat/lng ที่ได้ (ถ้าไม่มี location ก็จะเป็นค่า default)
+  const map = L.map("map").setView([lat, lng], 16);
 
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+  }).addTo(map);
+
+  // ถ้ามีพิกัดที่มาจาก post.location ให้ปักหมุด
+  if (post.location) {
     L.marker([lat, lng]).addTo(map);
   }
 }
 
 load();
-
