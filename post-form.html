@@ -4,13 +4,28 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create Post</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+  />
+
+  <style>
+    #map {
+      width: 100%;
+      height: 300px;
+      margin-top: 10px;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+  </style>
 </head>
 <body>
   <h1>Create Post</h1>
 
   <form id="postForm">
     <label>Title:</label><br>
-    <input type="text" id="title" placeholder="Item title" required /><br><br>
+    <input type="text" id="title" required /><br><br>
 
     <label>Type:</label><br>
     <select id="type" required>
@@ -19,43 +34,46 @@
     </select><br><br>
 
     <label>Location:</label><br>
-    <input type="text" id="location" placeholder="Where was it lost/found?" required /><br><br>
+    <input type="text" id="location" placeholder="Click on the map" required /><br><br>
+
+    <div id="map"></div>
+    <br>
 
     <label>Description:</label><br>
-    <textarea id="description" placeholder="Describe the item" required></textarea><br><br>
+    <textarea id="description" required></textarea><br><br>
 
-    <label>Upload Image (optional):</label>
-    <input type="file" id="image" accept="image/*">
-    
+    <label>Upload Image (optional):</label><br>
+    <input type="file" id="image" accept="image/*"><br><br>
+
     <button type="submit">Submit</button>
   </form>
 
-  <script type="module">
-    import { db } from "./js/firebase.js";
-    import { collection, addDoc, serverTimestamp } 
-      from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
 
-    const form = document.getElementById("postForm");
+  <script>
+    const map = L.map('map').setView([13.736717, 100.523186], 13);
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+    }).addTo(map);
 
-      const title = document.getElementById("title").value;
-      const type = document.getElementById("type").value;
-      const location = document.getElementById("location").value;
-      const description = document.getElementById("description").value;
+    let marker;
 
-      await addDoc(collection(db, "posts"), {
-        title,
-        type,
-        location,
-        description,
-        createdAt: serverTimestamp()
-      });
+    map.on("click", function (e) {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
 
-      alert("Post created!");
-      window.location.href = "index.html";
+      if (marker) {
+        map.removeLayer(marker);
+      }
+
+      marker = L.marker([lat, lng]).addTo(map);
+      document.getElementById("location").value = `${lat}, ${lng}`;
     });
   </script>
+
+  <!-- ใช้ script เดียวเท่านั้น -->
+  <script type="module" src="js/post-form.js"></script>
+
 </body>
 </html>
