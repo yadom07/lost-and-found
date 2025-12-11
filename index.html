@@ -4,11 +4,13 @@
   <meta charset="UTF-8" />
   <title>Campus Lost & Found</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/layout.css" />
 </head>
 <body>
 
+  <!-- TOP BAR -->
   <header class="topbar">
     <button class="icon-button" aria-label="Menu">
       ☰
@@ -19,15 +21,20 @@
     </div>
 
     <div class="topbar-actions">
-      <button class="primary-button" onclick="location.href='post-form.html'">
+
+      <!-- ปุ่มสร้างโพสต์ -->
+      <button class="primary-button" id="postButton" onclick="location.href='post-form.html'">
         + Post
       </button>
-      <button class="icon-button circle" aria-label="Profile">
-        👤
+
+      <!-- ปุ่มล็อกอิน / ออกจากระบบ -->
+      <button class="icon-button circle" aria-label="Profile" id="authButton">
+        Sign in
       </button>
     </div>
   </header>
 
+  <!-- MAIN UI -->
   <main class="page">
 
     <section class="filter-row">
@@ -35,12 +42,13 @@
       <button class="chip" data-filter="found">Found</button>
     </section>
 
-  
-    <section class="card-grid" id="itemGrid">
-    </section>
+    <section class="card-grid" id="itemGrid"></section>
 
   </main>
+
+  <!-- Firebase + Main JS -->
   <script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/main.js"></script>
+  <script type="module" src="js/main.js"></script>
+
 </body>
 </html>
