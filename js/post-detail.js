@@ -26,6 +26,9 @@ async function load() {
   }
 
   // แสดงแผนที่
+  let defaultLat = 13.6517;
+  let defaultLng = 100.4940;
+  
   if (post.location) {
     const [lat, lng] = post.location.split(",").map(Number);
     const map = L.map('map').setView([lat, lng], 16);
@@ -39,3 +42,4 @@ async function load() {
 }
 
 load();
+
