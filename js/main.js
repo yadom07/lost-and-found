@@ -1,76 +1,8 @@
-// main.js
+import { db } from "./firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// ----- Imports -----
-import { db, auth, microsoftProvider } from "./firebase.js";
-import { 
-  collection, 
-  getDocs 
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { 
-  signInWithPopup, 
-  signOut, 
-  onAuthStateChanged 
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-
-// ----- DOM Elements -----
 const grid = document.getElementById("itemGrid");
 const filterButtons = document.querySelectorAll(".chip");
-
-const authButton = document.getElementById("authButton");
-const postButton = document.getElementById("postButton");
-
-// =======================
-//   AUTH / LOGIN LOGIC
-// =======================
-
-// ปรับ UI ตามสถานะ user
-function updateAuthUI(user) {
-  if (user) {
-    const name = user.displayName || user.email || "User";
-    authButton.textContent = name.split(" ")[0]; // โชว์ชื่อสั้น ๆ เช่น Bank
-    postButton.disabled = false;
-    postButton.style.opacity = "1";
-  } else {
-    authButton.textContent = "Sign in";
-    postButton.disabled = true;
-    postButton.style.opacity = "0.5";
-  }
-}
-
-// ฟังสถานะ auth
-onAuthStateChanged(auth, (user) => {
-  updateAuthUI(user);
-});
-
-// คลิกปุ่มล็อกอิน / ออกจากระบบ
-authButton.addEventListener("click", async () => {
-  if (auth.currentUser) {
-    // ถ้าล็อกอินอยู่ → ออกจากระบบ
-    const ok = confirm("ต้องการออกจากระบบหรือไม่?");
-    if (!ok) return;
-
-    try {
-      await signOut(auth);
-      alert("ออกจากระบบเรียบร้อย");
-    } catch (err) {
-      console.error(err);
-      alert("ออกจากระบบไม่สำเร็จ");
-    }
-  } else {
-    // ถ้ายังไม่ล็อกอิน → ล็อกอินด้วย Microsoft
-    try {
-      await signInWithPopup(auth, microsoftProvider);
-      alert("เข้าสู่ระบบด้วย Microsoft สำเร็จ");
-    } catch (err) {
-      console.error(err);
-      alert("ไม่สามารถล็อกอินด้วย Microsoft ได้");
-    }
-  }
-});
-
-// =======================
-//   LOAD POSTS / FILTER
-// =======================
 
 async function loadPosts(filter = "lost") {
   const querySnapshot = await getDocs(collection(db, "posts"));
@@ -122,7 +54,6 @@ function timeAgo(time) {
   return Math.floor(diff / 86400000) + " days ago";
 }
 
-// เปลี่ยน filter Lost / Found
 filterButtons.forEach(btn => {
   btn.addEventListener("click", () => {
     filterButtons.forEach(b => b.classList.remove("active"));
@@ -131,5 +62,4 @@ filterButtons.forEach(btn => {
   });
 });
 
-// โหลด Lost เป็นค่าเริ่มต้น
 loadPosts("lost");
