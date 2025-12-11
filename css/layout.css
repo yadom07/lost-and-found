@@ -107,12 +107,20 @@
   box-shadow: 0 12px 24px rgb(15 23 42 / 0.08);
 }
 
-.item-image.placeholder {
+/* Dashboard image */
+.item-image {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  height: 180px;
   border-radius: 12px;
+  background-size: cover;
+  background-position: center;
+}
+
+.item-image.placeholder {
   background: linear-gradient(135deg, #e5e7eb, #d1d5db);
 }
+
+/* Item content */
 
 .item-content {
   display: flex;
@@ -157,10 +165,17 @@
   margin-bottom: 1.5rem;
 }
 
-.detail-image.placeholder {
+/* Detail image */
+.detail-image {
   width: 100%;
-  aspect-ratio: 4 / 3;
+  height: 300px;
   border-radius: 18px;
+  background-size: cover;
+  background-position: center;
+  overflow: hidden;
+}
+
+.detail-image.placeholder {
   background: linear-gradient(135deg, #e5e7eb, #d1d5db);
 }
 
@@ -227,5 +242,13 @@
 
   .page {
     padding: 0.9rem;
+  }
+
+  .item-image {
+    height: 160px;
+  }
+
+  .detail-image {
+    height: 220px;
   }
 }
