@@ -114,7 +114,7 @@ document.getElementById("postForm").addEventListener("submit", async (e) => {
     location,
     description,
     imageUrl,  // ถ้าไม่เลือกรูป = ""
-    createdAt: serverTimestamp()
+    createdAt: serverTimestamp(),
 
     ...aiFields
   });
@@ -122,4 +122,5 @@ document.getElementById("postForm").addEventListener("submit", async (e) => {
   alert("Post created!");
   window.location.href = "index.html";
 });
+
 
