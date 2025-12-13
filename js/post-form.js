@@ -3,8 +3,18 @@ import { db } from "./firebase.js";
 import { collection, addDoc, serverTimestamp } 
   from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
+import { auth } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
+
 // ใส่ API Key ของคุณ
 const IMGBB_API_KEY = "b52fa7a68decc010c1835f4bb6cbd2d0";
+
+onAuthStateChanged(auth, (user) => {
+  if (!user) {
+    alert("Please login first");
+    window.location.href = "index.html";
+  }
+});
 
 function calculateImportanceScore(ai) {
   const valueWeight = {
@@ -361,4 +371,3 @@ document
     alert("Post created!");
     window.location.href = "index.html";
   });*/
-
