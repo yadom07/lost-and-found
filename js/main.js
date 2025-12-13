@@ -121,6 +121,16 @@ function renderPosts(list) {
 
     grid.appendChild(card);
   }
+
+  const score = post.importanceScore ?? 0;
+
+  if (score >= 0.75) {
+    priorityBadge = `<span class="priority-badge high">🔥 High Priority</span>`;
+  } else if (score >= 0.3) {
+    priorityBadge = `<span class="priority-badge med">⚠️ Medium Priority</span>`;
+  } else {
+    priorityBadge = `<span class="priority-badge low">Low Priority</span>`;
+  }
 }
 
 function applyFilterAndSearch() {
@@ -173,6 +183,14 @@ function loadUserName() {
 
 /* ---------------- init data ---------------- */
 
+function applyAIPriority(posts) {
+  return posts.sort((a, b) => {
+    const scoreA = a.data.importanceScore ?? 0;
+    const scoreB = b.data.importanceScore ?? 0;
+    return scoreB - scoreA;
+  });
+}
+
 async function loadPostsOnce() {
   const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
   const snapshot = await getDocs(q);
@@ -181,6 +199,7 @@ async function loadPostsOnce() {
     id: d.id,
     data: d.data(),
   }));
+  cachedPosts = applyAIPriority(cachedPosts);
 
   applyFilterAndSearch();
 }
@@ -224,4 +243,5 @@ loadUserName();
 loadPostsOnce().catch((err) => {
   console.error(err);
   renderEmpty("Failed to load posts.");
+
 });
