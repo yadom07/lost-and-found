@@ -77,61 +77,62 @@ function renderPosts(list) {
   }
 
   for (const item of list) {
-    const { id, data: post } = item;
-    const type = post.type || "lost";
+  const { id, data: post } = item;
+  const type = post.type || "lost";
 
-    const createdAtMs = getCreatedAtMs(post);
-    const createdTime = createdAtMs ? timeAgo(createdAtMs) : "";
+  const card = document.createElement("div");
+  card.className = "item-card";
+  card.addEventListener("click", () => {
+    window.location.href = `post-detail.html?id=${id}`;
+  });
 
-    const card = document.createElement("div");
-    card.className = "item-card";
-    card.addEventListener("click", () => {
-      window.location.href = `post-detail.html?id=${id}`;
-    });
-
-    const img = document.createElement("div");
-    img.className = "item-image";
-    if (post.imageUrl) {
-      img.style.backgroundImage = `url('${post.imageUrl}')`;
-    } else {
-      img.classList.add("placeholder");
-    }
-
-    const content = document.createElement("div");
-    content.className = "item-content";
-
-    const badge = document.createElement("span");
-    badge.className = `item-badge ${type}`;
-    badge.textContent = type === "lost" ? "Lost" : "Found";
-
-    const title = document.createElement("div");
-    title.className = "item-title";
-    title.textContent = post.title || "Untitled";
-
-    const meta = document.createElement("div");
-    meta.className = "item-meta";
-    meta.textContent = `${post.location || ""}${createdTime ? " • " + createdTime : ""}`;
-
-    content.appendChild(badge);
-    content.appendChild(title);
-    content.appendChild(meta);
-
-    card.appendChild(img);
-    card.appendChild(content);
-
-    grid.appendChild(card);
+  const img = document.createElement("div");
+  img.className = "item-image";
+  if (post.imageUrl) {
+    img.style.backgroundImage = `url('${post.imageUrl}')`;
+  } else {
+    img.classList.add("placeholder");
   }
 
+  const content = document.createElement("div");
+  content.className = "item-content";
+
+  const badge = document.createElement("span");
+  badge.className = `item-badge ${type}`;
+  badge.textContent = type === "lost" ? "Lost" : "Found";
+
+  const title = document.createElement("div");
+  title.className = "item-title";
+  title.textContent = post.title || "Untitled";
+
+  // 🔥 YOUR AI PRIORITY LOGIC (SAFE)
   const score = post.importanceScore ?? 0;
+  const priority = document.createElement("div");
+  priority.className = "priority-wrapper";
 
   if (score >= 0.75) {
-    priorityBadge = `<span class="priority-badge high">🔥 High Priority</span>`;
+    priority.innerHTML = `<span class="priority-badge high">🔥 High Priority</span>`;
   } else if (score >= 0.3) {
-    priorityBadge = `<span class="priority-badge med">⚠️ Medium Priority</span>`;
+    priority.innerHTML = `<span class="priority-badge med">⚠️ Medium Priority</span>`;
   } else {
-    priorityBadge = `<span class="priority-badge low">Low Priority</span>`;
+    priority.innerHTML = `<span class="priority-badge low">Low Priority</span>`;
   }
+
+  const meta = document.createElement("div");
+  meta.className = "item-meta";
+  meta.textContent = post.location || "";
+
+  content.appendChild(badge);
+  content.appendChild(title);
+  content.appendChild(priority); // ✅ here
+  content.appendChild(meta);
+
+  card.appendChild(img);
+  card.appendChild(content);
+
+  grid.appendChild(card);
 }
+
 
 function applyFilterAndSearch() {
   const q = normalizeText(activeQuery);
@@ -245,3 +246,4 @@ loadPostsOnce().catch((err) => {
   renderEmpty("Failed to load posts.");
 
 });
+
