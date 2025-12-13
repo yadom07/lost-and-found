@@ -10,37 +10,79 @@
 <body>
 
   <header class="topbar">
-    <button class="icon-button" aria-label="Menu">
-      ☰
-    </button>
-
-    <div class="topbar-title">
-      Campus Lost &amp; Found
+    <div class="topbar-left">
+      <button class="icon-button" aria-label="Menu">≡</button>
+      <div class="topbar-title">Campus Lost & Found</div>
     </div>
 
     <div class="topbar-actions">
-      <button class="primary-button" onclick="location.href='post-form.html'">
-        + Post
-      </button>
-      <button class="icon-button circle" aria-label="Profile">
-        👤
-      </button>
+      <a class="primary-button" href="post-form.html">Create</a>
+
+      <div class="user-menu">
+        <button class="user-button" id="userBtn" aria-haspopup="true" aria-expanded="false">
+          <span class="user-avatar">👤</span>
+          <span class="user-name" id="userNameTop">User</span>
+        </button>
+
+        <div class="user-dropdown" id="userMenu" role="menu">
+          <button class="user-item" type="button">Profile</button>
+          <button class="user-item" type="button">My Posts</button>
+          <hr />
+          <button class="user-item danger" type="button">Logout</button>
+        </div>
+      </div>
     </div>
   </header>
 
   <main class="page">
+    <!-- ✅ Welcome area (เหนือช่องค้นหา) -->
+    <section class="welcome-row" aria-label="Welcome">
+      <div class="welcome-title">Welcome, <span id="welcomeName">User</span></div>
+      <div class="welcome-sub">Search and filter items quickly.</div>
+    </section>
 
-    <section class="filter-row">
-      <button class="chip active" data-filter="lost">Lost</button>
+    <!-- Search bar -->
+    <section class="search-bar" aria-label="Search">
+      <div class="search-icon" aria-hidden="true">🔎</div>
+      <input
+        id="searchInput"
+        class="search-input"
+        type="text"
+        placeholder="Search by item name, description, or location..."
+        autocomplete="off"
+      />
+      <button id="clearSearch" class="search-clear" type="button" aria-label="Clear search">✕</button>
+    </section>
+
+    <section class="filter-row" aria-label="Filter">
+      <button class="chip active" data-filter="all">All</button>
+      <button class="chip" data-filter="lost">Lost</button>
       <button class="chip" data-filter="found">Found</button>
     </section>
 
-  
-    <section class="card-grid" id="itemGrid">
-    </section>
-
+    <section class="card-grid" id="itemGrid" aria-label="Posts"></section>
   </main>
+
+  <script>
+    // User menu (shared)
+    const userBtn = document.getElementById("userBtn");
+    const userMenu = document.getElementById("userMenu");
+
+    if (userBtn && userMenu) {
+      userBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const open = userMenu.classList.toggle("open");
+        userBtn.setAttribute("aria-expanded", String(open));
+      });
+
+      document.addEventListener("click", () => {
+        userMenu.classList.remove("open");
+        userBtn.setAttribute("aria-expanded", "false");
+      });
+    }
+  </script>
+
   <script type="module" src="js/firebase.js"></script>
-<script type="module" src="js/main.js"></script>
+  <script type="module" src="js/main.js"></script>
 </body>
 </html>
