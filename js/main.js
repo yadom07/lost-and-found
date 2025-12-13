@@ -110,7 +110,7 @@ function renderPosts(list) {
   const priority = document.createElement("div");
   priority.className = "priority-wrapper";
 
-  if (score >= 0.75) {
+  if (score >= 0.64) {
     priority.innerHTML = `<span class="priority-badge high">🔥 High Priority</span>`;
   } else if (score >= 0.3) {
     priority.innerHTML = `<span class="priority-badge med">⚠️ Medium Priority</span>`;
@@ -469,4 +469,5 @@ loadPostsOnce().catch((err) => {
   console.error(err);
   renderEmpty("Failed to load posts.");
 });*/
+
 
