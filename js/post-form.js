@@ -6,6 +6,65 @@ import { collection, addDoc, serverTimestamp }
 // ใส่ API Key ของคุณ
 const IMGBB_API_KEY = "b52fa7a68decc010c1835f4bb6cbd2d0";
 
+function calculateImportanceScore(ai) {
+  const valueWeight = {
+    very_high: 1.0,
+    high: 0.8,
+    medium: 0.5,
+    low: 0.2
+  }[ai.value_bucket] || 0.4;
+
+  const categoryWeight = {
+    phone: 1.0,
+    smartphone: 1.0,
+    electronics: 1.0,
+    wallet: 0.9,
+    documents: 1.0,
+    bag: 0.6,
+    book: 0.5,
+    clothing: 0.4
+  }[(ai.category || "").toLowerCase()] || 0.4;
+
+  const docScore = ai.has_docs ? 1 : 0;
+  const essentialScore = ai.is_essential ? 1 : 0;
+
+  return Math.min(
+    0.35 * valueWeight +
+    0.25 * categoryWeight +
+    0.20 * docScore +
+    0.20 * essentialScore,
+    1
+  );
+}
+
+
+async function enrichWithAI({ title, description }) {
+  try {
+    const res = await fetch("http://localhost:3000/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ title, description }),
+    });
+
+    const ai = await res.json();
+
+    const importanceScore = calculateImportanceScore(ai);
+
+    return {
+      aiCategory: ai.category,
+      aiValueBucket: ai.value_bucket,
+      aiDocs: ai.has_docs,
+      aiEssential: ai.is_essential,
+      importanceScore,
+    };
+  } catch {
+    return {
+      importanceScore: 0.4, // safe default
+    };
+  }
+}
+
+
 document.getElementById("postForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -47,6 +106,7 @@ document.getElementById("postForm").addEventListener("submit", async (e) => {
     }
   }
 
+  const aiFields = await enrichWithAI({ title, description });
   // บันทึกข้อมูลลง Firestore
   await addDoc(collection(db, "posts"), {
     title,
@@ -55,8 +115,11 @@ document.getElementById("postForm").addEventListener("submit", async (e) => {
     description,
     imageUrl,  // ถ้าไม่เลือกรูป = ""
     createdAt: serverTimestamp()
+
+    ...aiFields
   });
 
   alert("Post created!");
   window.location.href = "index.html";
 });
+
