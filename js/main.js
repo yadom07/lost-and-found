@@ -1,65 +1,227 @@
 import { db } from "./firebase.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import {
+  collection,
+  getDocs,
+  query,
+  orderBy,
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
+// ✅ optional: if firebase.js exports auth we can use it
+// If not present, the try/catch will fallback safely.
+let auth = null;
+try {
+  const mod = await import("./firebase.js");
+  auth = mod.auth || null;
+} catch (_) {}
+
+/* ---------------- DOM ---------------- */
 const grid = document.getElementById("itemGrid");
 const filterButtons = document.querySelectorAll(".chip");
 
-async function loadPosts(filter = "lost") {
-  const querySnapshot = await getDocs(collection(db, "posts"));
-  grid.innerHTML = "";
+const searchInput = document.getElementById("searchInput");
+const clearSearchBtn = document.getElementById("clearSearch");
 
-  querySnapshot.forEach((doc) => {
-    const post = doc.data();
-    if (post.type !== filter) return;
+const welcomeNameEl = document.getElementById("welcomeName");
+const userNameTopEl = document.getElementById("userNameTop");
 
-    const createdTime = post.createdAt?.seconds
-      ? timeAgo(post.createdAt.seconds * 1000)
-      : "Unknown";
+let activeFilter = "all";
+let activeQuery = "";
+let cachedPosts = []; // { id, data }
 
-    const card = document.createElement("a");
-    card.className = "item-card";
-    card.href = "post-detail.html?id=" + doc.id;
+/* ---------------- helpers ---------------- */
 
-    const img = post.imageUrl
-      ? `<div class="item-image" style="
-            background-image: url('${post.imageUrl}');
-            background-size: cover;
-            background-position: center;
-            width: 100%;
-            height: 180px;
-            border-radius: 12px;
-          "></div>`
-      : `<div class="item-image placeholder" style="height:180px;"></div>`;
-
-    card.innerHTML = `
-      ${img}
-      <div class="item-content">
-        <div class="item-badge ${post.type}">
-          ${post.type === "lost" ? "Lost" : "Found"}
-        </div>
-        <h3 class="item-title">${post.title}</h3>
-        <p class="item-meta">${post.location} • ${createdTime}</p>
-      </div>
-    `;
-
-    grid.appendChild(card);
-  });
+function getCreatedAtMs(post) {
+  if (post?.createdAt?.seconds) return post.createdAt.seconds * 1000;
+  if (typeof post?.createdAt?.toMillis === "function") return post.createdAt.toMillis();
+  return 0;
 }
 
-function timeAgo(time) {
-  const diff = Date.now() - time;
-  if (diff < 60000) return "Just now";
+function timeAgo(timestamp) {
+  const now = Date.now();
+  const diff = now - timestamp;
+
+  if (diff < 60000) return Math.floor(diff / 1000) + " secs ago";
   if (diff < 3600000) return Math.floor(diff / 60000) + " mins ago";
   if (diff < 86400000) return Math.floor(diff / 3600000) + " hrs ago";
   return Math.floor(diff / 86400000) + " days ago";
 }
 
-filterButtons.forEach(btn => {
+function normalizeText(s) {
+  return String(s || "").toLowerCase().trim();
+}
+
+function matchesSearch(post, q) {
+  if (!q) return true;
+
+  const title = normalizeText(post.title);
+  const desc = normalizeText(post.description);
+  const loc = normalizeText(post.location);
+
+  return title.includes(q) || desc.includes(q) || loc.includes(q);
+}
+
+function renderEmpty(msg) {
+  grid.innerHTML = "";
+  const empty = document.createElement("div");
+  empty.className = "card pad";
+  empty.textContent = msg;
+  grid.appendChild(empty);
+}
+
+function renderPosts(list) {
+  grid.innerHTML = "";
+
+  if (list.length === 0) {
+    renderEmpty("No posts found.");
+    return;
+  }
+
+  for (const item of list) {
+    const { id, data: post } = item;
+    const type = post.type || "lost";
+
+    const createdAtMs = getCreatedAtMs(post);
+    const createdTime = createdAtMs ? timeAgo(createdAtMs) : "";
+
+    const card = document.createElement("div");
+    card.className = "item-card";
+    card.addEventListener("click", () => {
+      window.location.href = `post-detail.html?id=${id}`;
+    });
+
+    const img = document.createElement("div");
+    img.className = "item-image";
+    if (post.imageUrl) {
+      img.style.backgroundImage = `url('${post.imageUrl}')`;
+    } else {
+      img.classList.add("placeholder");
+    }
+
+    const content = document.createElement("div");
+    content.className = "item-content";
+
+    const badge = document.createElement("span");
+    badge.className = `item-badge ${type}`;
+    badge.textContent = type === "lost" ? "Lost" : "Found";
+
+    const title = document.createElement("div");
+    title.className = "item-title";
+    title.textContent = post.title || "Untitled";
+
+    const meta = document.createElement("div");
+    meta.className = "item-meta";
+    meta.textContent = `${post.location || ""}${createdTime ? " • " + createdTime : ""}`;
+
+    content.appendChild(badge);
+    content.appendChild(title);
+    content.appendChild(meta);
+
+    card.appendChild(img);
+    card.appendChild(content);
+
+    grid.appendChild(card);
+  }
+}
+
+function applyFilterAndSearch() {
+  const q = normalizeText(activeQuery);
+
+  const filtered = cachedPosts.filter(({ data }) => {
+    const type = data.type || "lost";
+    const typeOk = activeFilter === "all" ? true : type === activeFilter;
+    const searchOk = matchesSearch(data, q);
+    return typeOk && searchOk;
+  });
+
+  renderPosts(filtered);
+}
+
+/* ---------------- user name ---------------- */
+
+function pickNameFromEmail(email) {
+  if (!email) return "";
+  const at = String(email).indexOf("@");
+  return at > 0 ? email.slice(0, at) : email;
+}
+
+function setUserName(name) {
+  const safe = (name && String(name).trim()) ? String(name).trim() : "User";
+  if (welcomeNameEl) welcomeNameEl.textContent = safe;
+  if (userNameTopEl) userNameTopEl.textContent = safe;
+}
+
+function loadUserName() {
+  // 1) Firebase Auth (if available)
+  try {
+    const u = auth?.currentUser;
+    if (u) {
+      setUserName(u.displayName || pickNameFromEmail(u.email) || "User");
+      return;
+    }
+  } catch (_) {}
+
+  // 2) localStorage fallback (ให้คุณตั้งค่าไว้เองได้)
+  const ls = localStorage.getItem("userName");
+  if (ls) {
+    setUserName(ls);
+    return;
+  }
+
+  // 3) default
+  setUserName("User");
+}
+
+/* ---------------- init data ---------------- */
+
+async function loadPostsOnce() {
+  const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
+  const snapshot = await getDocs(q);
+
+  cachedPosts = snapshot.docs.map((d) => ({
+    id: d.id,
+    data: d.data(),
+  }));
+
+  applyFilterAndSearch();
+}
+
+/* ---------------- events ---------------- */
+
+filterButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
-    filterButtons.forEach(b => b.classList.remove("active"));
+    filterButtons.forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
-    loadPosts(btn.dataset.filter);
+
+    activeFilter = btn.dataset.filter || "all";
+    applyFilterAndSearch();
   });
 });
 
-loadPosts("lost");
+// debounce search
+let t = null;
+if (searchInput) {
+  searchInput.addEventListener("input", (e) => {
+    const val = e.target.value || "";
+    clearTimeout(t);
+    t = setTimeout(() => {
+      activeQuery = val;
+      applyFilterAndSearch();
+    }, 120);
+  });
+}
+
+if (clearSearchBtn && searchInput) {
+  clearSearchBtn.addEventListener("click", () => {
+    searchInput.value = "";
+    activeQuery = "";
+    applyFilterAndSearch();
+    searchInput.focus();
+  });
+}
+
+/* ---------------- start ---------------- */
+loadUserName();
+loadPostsOnce().catch((err) => {
+  console.error(err);
+  renderEmpty("Failed to load posts.");
+});
