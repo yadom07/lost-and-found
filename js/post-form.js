@@ -1,7 +1,12 @@
 // post-form.js
-import { db } from "./firebase.js";  
-import { collection, addDoc, serverTimestamp } 
-  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { db } from "./firebase.js";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  doc,
+  getDoc
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 import { auth } from "./firebase.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
@@ -9,13 +14,150 @@ import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/fi
 // ใส่ API Key ของคุณ
 const IMGBB_API_KEY = "b52fa7a68decc010c1835f4bb6cbd2d0";
 
-onAuthStateChanged(auth, (user) => {
+/* ---------------- DOM ---------------- */
+const posterNameInput = document.getElementById("posterName");
+const posterNameError = document.getElementById("posterNameError");
+
+const contactMethodEl = document.getElementById("contactMethod");
+const contactMethodError = document.getElementById("contactMethodError");
+
+const contactValueWrap = document.getElementById("contactValueWrap");
+const contactValueLabel = document.getElementById("contactValueLabel");
+const contactValueEl = document.getElementById("contactValue");
+const contactValueError = document.getElementById("contactValueError");
+
+/* ---------------- STATE ---------------- */
+let currentUser = null;
+let cachedPosterName = "";
+let cachedProfile = {
+  fullName: "",
+  phone: "",
+  facebook: "",
+  instagram: "",
+  lineId: "",
+  email: ""
+};
+
+/* ---------------- helpers ---------------- */
+function pickNameFromEmail(email) {
+  if (!email) return "User";
+  return String(email).split("@")[0] || "User";
+}
+
+function setErr(inputEl, errEl, msg) {
+  if (inputEl) inputEl.classList.add("invalid");
+  if (errEl) errEl.textContent = msg || "";
+}
+
+function clearErr(inputEl, errEl) {
+  if (inputEl) inputEl.classList.remove("invalid");
+  if (errEl) errEl.textContent = "";
+}
+
+function showContactValue() {
+  if (contactValueWrap) contactValueWrap.classList.add("show");
+}
+
+function hideContactValue() {
+  if (contactValueWrap) contactValueWrap.classList.remove("show");
+  if (contactValueEl) contactValueEl.value = "";
+}
+
+/* ---------------- load profile from Firestore ---------------- */
+async function loadUserDoc(user) {
+  try {
+    const snap = await getDoc(doc(db, "users", user.uid));
+    if (snap.exists()) return snap.data();
+  } catch (e) {
+    console.warn("loadUserDoc failed:", e);
+  }
+  return null;
+}
+
+async function syncProfile(user) {
+  cachedProfile.email = user?.email || "";
+
+  const u = await loadUserDoc(user);
+
+  const fullName =
+    user?.displayName ||
+    u?.fullName ||
+    u?.displayName ||
+    u?.name ||
+    pickNameFromEmail(user?.email);
+
+  cachedPosterName = String(fullName || "").trim() || "User";
+
+  cachedProfile.fullName = cachedPosterName;
+  cachedProfile.phone = String(u?.phone || "").trim();
+  cachedProfile.facebook = String(u?.facebook || "").trim();
+  cachedProfile.instagram = String(u?.instagram || "").trim();
+  cachedProfile.lineId = String(u?.lineId || "").trim(); // ✅ LINE
+
+  clearErr(posterNameInput, posterNameError);
+  if (posterNameInput) posterNameInput.value = cachedPosterName;
+
+  if (contactMethodEl && contactMethodEl.value) {
+    applyContactMethod(contactMethodEl.value);
+  }
+}
+
+/* ---------------- contact method behavior ---------------- */
+function methodMeta(method) {
+  if (method === "facebook") return { label: "Facebook", placeholder: "Your Facebook (from profile)", key: "facebook" };
+  if (method === "instagram") return { label: "Instagram", placeholder: "Your Instagram (from profile)", key: "instagram" };
+  if (method === "line") return { label: "LINE", placeholder: "Your LINE ID (from profile)", key: "lineId" };
+  if (method === "email") return { label: "Email", placeholder: "Your Email (from login)", key: "email" };
+  if (method === "phone") return { label: "Phone", placeholder: "Your Phone (from profile)", key: "phone" };
+  return null;
+}
+
+function applyContactMethod(method) {
+  clearErr(contactMethodEl, contactMethodError);
+  clearErr(contactValueEl, contactValueError);
+
+  const meta = methodMeta(method);
+  if (!meta) {
+    hideContactValue();
+    return;
+  }
+
+  const value = String(cachedProfile[meta.key] || "").trim();
+
+  if (contactValueLabel) contactValueLabel.textContent = meta.label;
+  if (contactValueEl) contactValueEl.placeholder = meta.placeholder;
+
+  showContactValue();
+  if (contactValueEl) contactValueEl.value = value;
+
+  if (!value) {
+    setErr(contactValueEl, contactValueError, `No ${meta.label} found in your registered profile.`);
+  }
+}
+
+if (contactMethodEl) {
+  contactMethodEl.addEventListener("change", () => {
+    applyContactMethod(contactMethodEl.value);
+  });
+}
+
+/* ---------------- auth guard + init ---------------- */
+onAuthStateChanged(auth, async (user) => {
   if (!user) {
     alert("Please login first");
     window.location.href = "index.html";
+    return;
   }
+
+  currentUser = user;
+
+  if (posterNameInput) posterNameInput.value = "Loading...";
+  hideContactValue();
+
+  await syncProfile(user);
 });
 
+/* ---------------- AI scoring ---------------- */
 function calculateImportanceScore(ai) {
   const valueWeight = {
     very_high: 1.0,
@@ -47,7 +189,6 @@ function calculateImportanceScore(ai) {
   );
 }
 
-
 async function enrichWithAI({ title, description }) {
   try {
     const res = await fetch("http://localhost:3000/analyze", {
@@ -57,7 +198,6 @@ async function enrichWithAI({ title, description }) {
     });
 
     const ai = await res.json();
-
     const importanceScore = calculateImportanceScore(ai);
 
     return {
@@ -68,15 +208,40 @@ async function enrichWithAI({ title, description }) {
       importanceScore,
     };
   } catch {
-    return {
-      importanceScore: 0.4, // safe default
-    };
+    return { importanceScore: 0.4 };
   }
 }
 
-
+/* ---------------- submit ---------------- */
 document.getElementById("postForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  if (!currentUser) {
+    alert("Please login first");
+    window.location.href = "index.html";
+    return;
+  }
+
+  const posterName = String(cachedPosterName || posterNameInput?.value || "").trim();
+  if (!posterName) {
+    setErr(posterNameInput, posterNameError, "Cannot load your profile name. Please re-login and try again.");
+    return;
+  }
+  clearErr(posterNameInput, posterNameError);
+
+  const contactMethod = String(contactMethodEl?.value || "").trim();
+  if (!contactMethod) {
+    setErr(contactMethodEl, contactMethodError, "Please select a contact method.");
+    return;
+  }
+  clearErr(contactMethodEl, contactMethodError);
+
+  const contactValue = String(contactValueEl?.value || "").trim();
+  if (!contactValue) {
+    setErr(contactValueEl, contactValueError, "This contact value is missing in your registered profile.");
+    return;
+  }
+  clearErr(contactValueEl, contactValueError);
 
   const title = document.getElementById("title").value;
   const type = document.getElementById("type").value;
@@ -84,20 +249,16 @@ document.getElementById("postForm").addEventListener("submit", async (e) => {
   const description = document.getElementById("description").value;
   const file = document.getElementById("image").files[0];
 
-  console.log("Submitting with data:", { title, type, location, description });
-
   let imageUrl = "";
 
   if (file) {
-    // อ่านไฟล์เป็น Base64
     const reader = new FileReader();
     const base64 = await new Promise((resolve, reject) => {
       reader.onload = () => resolve(reader.result.split(",")[1]);
-      reader.onerror = error => reject(error);
+      reader.onerror = (error) => reject(error);
       reader.readAsDataURL(file);
     });
 
-    // ส่งไปยัง ImgBB
     const formData = new FormData();
     formData.append("key", IMGBB_API_KEY);
     formData.append("image", base64);
@@ -109,7 +270,7 @@ document.getElementById("postForm").addEventListener("submit", async (e) => {
 
     const data = await res.json();
     if (data.success) {
-      imageUrl = data.data.url; // URL ของรูป
+      imageUrl = data.data.url;
     } else {
       console.error("ImgBB upload failed:", data);
       alert("Upload image failed!");
@@ -117,14 +278,21 @@ document.getElementById("postForm").addEventListener("submit", async (e) => {
   }
 
   const aiFields = await enrichWithAI({ title, description });
-  // บันทึกข้อมูลลง Firestore
+
   await addDoc(collection(db, "posts"), {
     title,
     type,
     location,
     description,
-    imageUrl,  // ถ้าไม่เลือกรูป = ""
+    imageUrl,
     createdAt: serverTimestamp(),
+
+    posterUid: currentUser.uid,
+    posterEmail: currentUser.email || "",
+    posterName,
+
+    contactMethod,
+    contactValue,
 
     ...aiFields
   });
@@ -132,242 +300,3 @@ document.getElementById("postForm").addEventListener("submit", async (e) => {
   alert("Post created!");
   window.location.href = "index.html";
 });
-
-
-
-
-
-/*// post-form.js
-import { db } from "./firebase.js";
-import { collection, addDoc, serverTimestamp } 
-  from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-// ImgBB API Key
-const IMGBB_API_KEY = "b52fa7a68decc010c1835f4bb6cbd2d0";
-
-async function fetchAIAnalysis(title, description) {
-  try {
-    const res = await fetch("http://localhost:3000/analyze", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, description }),
-    });
-
-    return await res.json();
-  } catch (e) {
-    console.error("AI server error:", e);
-    return {
-      category: "other",
-      value_bucket: "medium",
-      has_docs: false,
-      is_essential: false,
-    };
-  }
-}
-
-
-function calculateImportanceScore(ai) {
-  const category = (ai.category || "").toLowerCase();
-
-  const valueWeight = {
-    very_high: 1.0,
-    high: 0.8,
-    medium: 0.5,
-    low: 0.2
-  }[ai.value_bucket] || 0.4;
-
-  const categoryWeight = {
-    phone: 1.0,
-    smartphone: 1.0,
-    electronics: 1.0,
-
-    wallet: 0.9,
-    documents: 1.0,
-    id: 1.0,
-
-    bag: 0.6,
-    backpack: 0.6,
-    schoolbag: 0.6,
-
-    book: 0.5,
-    books: 0.5,
-    textbook: 0.5,
-    notebook: 0.5,
-    stationery: 0.5,
-
-    clothing: 0.4,
-    bottle: 0.4,
-    accessory: 0.4
-  }[category] || 0.4;
-
-  const docScore = ai.has_docs ? 1.0 : 0.0;
-  const essentialScore = ai.is_essential ? 1.0 : 0.0;
-
-  const score =
-    0.35 * valueWeight +
-    0.25 * categoryWeight +
-    0.20 * docScore +
-    0.20 * essentialScore;
-
-  return Math.min(score, 1);
-}
-
-
-
-document.getElementById("postForm").addEventListener("submit", async (e) => {
-  e.preventDefault();
-
-  const title = document.getElementById("title").value;
-  const type = document.getElementById("type").value;
-  const location = document.getElementById("location").value;
-  const description = document.getElementById("description").value;
-  const file = document.getElementById("image").files[0];
-
-  console.log("Submitting:", { title, type, location, description });
-
-  let imageUrl = "";
-
-
-  if (file) {
-    const reader = new FileReader();
-    const base64 = await new Promise((resolve, reject) => {
-      reader.onload = () => resolve(reader.result.split(",")[1]);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-
-    const formData = new FormData();
-    formData.append("key", IMGBB_API_KEY);
-    formData.append("image", base64);
-
-    const res = await fetch("https://api.imgbb.com/1/upload", {
-      method: "POST",
-      body: formData,
-    });
-
-    const uploadResult = await res.json();
-    if (uploadResult.success) {
-      imageUrl = uploadResult.data.url;
-    } else {
-      alert("Image upload failed.");
-      console.error(uploadResult);
-    }
-  }
-
-
-  const ai = await fetchAIAnalysis(title, description);
-  console.log("AI Output:", ai);
-
-  // Calculate importance
-  const importanceScore = calculateImportanceScore(ai);
-  console.log("Priority:", importanceScore);
-
-  console.log("=== GPT RAW RESPONSE ===");
-  console.log(ai);
-
-
-
-  try {
-    await addDoc(collection(db, "posts"), {
-      title,
-      type,
-      location,
-      description,
-      imageUrl,
-      createdAt: serverTimestamp(),
-
-      // Save AI fields
-      aiCategory: ai.category,
-      aiValueBucket: ai.value_bucket,
-      aiDocs: ai.has_docs,
-      aiEssential: ai.is_essential,
-      importanceScore,
-    });
-
-    alert("Post submitted successfully!");
-    document.getElementById("postForm").reset();
-
-  } catch (error) {
-    console.error("Error saving post:", error);
-    alert("Error saving post. Check console for details.");
-  }
-});*/
-
-/*// post-form.js
-import { db } from "./firebase.js";
-import {
-  collection,
-  addDoc,
-  serverTimestamp,
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-// ⚠️ ImgBB API Key
-const IMGBB_API_KEY = "b52fa7a68decc010c1835f4bb6cbd2d0";
-
-document
-  .getElementById("postForm")
-  .addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const title = document.getElementById("title").value;
-    const type = document.getElementById("type").value;
-    const location = document.getElementById("location").value;
-    const description = document.getElementById("description").value;
-    const file = document.getElementById("image").files[0];
-
-    console.log("Submitting with data:", {
-      title,
-      type,
-      location,
-      description,
-    });
-
-    let imageUrl = "";
-
-    // -------- Upload image (optional) --------
-    if (file) {
-      const reader = new FileReader();
-
-      const base64 = await new Promise((resolve, reject) => {
-        reader.onload = () =>
-          resolve(reader.result.split(",")[1]);
-        reader.onerror = (err) => reject(err);
-        reader.readAsDataURL(file);
-      });
-
-      const formData = new FormData();
-      formData.append("key", IMGBB_API_KEY);
-      formData.append("image", base64);
-
-      const res = await fetch(
-        "https://api.imgbb.com/1/upload",
-        {
-          method: "POST",
-          body: formData,
-        }
-      );
-
-      const data = await res.json();
-
-      if (data.success) {
-        imageUrl = data.data.url;
-      } else {
-        console.error("ImgBB upload failed:", data);
-        alert("Upload image failed!");
-        return;
-      }
-    }
-
-    // -------- Save to Firestore --------
-    await addDoc(collection(db, "posts"), {
-      title,
-      type,
-      location,
-      description,
-      imageUrl, // empty string if no image
-      createdAt: serverTimestamp(),
-    });
-
-    alert("Post created!");
-    window.location.href = "index.html";
-  });*/
