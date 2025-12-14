@@ -50,7 +50,9 @@ function calculateImportanceScore(ai) {
 
 async function enrichWithAI({ title, description }) {
   try {
-    const res = await fetch("http://localhost:3000/analyze", {
+    //if deploy doesnt work use this http://localhost:3000/analyze
+    const res = await fetch("https://lost-and-found-crba.onrender.com/analyze
+", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ title, description }),
@@ -371,3 +373,4 @@ document
     alert("Post created!");
     window.location.href = "index.html";
   });*/
+
