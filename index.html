@@ -16,18 +16,17 @@
     </div>
 
     <div class="topbar-actions">
-      <a class="primary-button" href="post-form.html">post</a>
+      <a class="primary-button" href="post-form.html">Post</a>
 
       <div class="user-menu">
-        <button class="user-button" id="userBtn">
+        <button class="user-button" id="userBtn" aria-haspopup="true" aria-expanded="false">
           <span class="user-avatar">👤</span>
           <span class="user-name" id="userNameTop">User</span>
         </button>
 
-        <!-- ✅ Login แค่เปลี่ยนหน้า -->
         <button
           id="loginBtn"
-          class="primary-button"
+          class="secondary-button"
           onclick="window.location.href='login.html'">
           Login
         </button>
@@ -68,7 +67,7 @@
         type="text"
         placeholder="Search by item name, description, or location..."
       />
-      <button id="clearSearch" class="search-clear">✕</button>
+      <button id="clearSearch" class="search-clear" aria-label="Clear">✕</button>
     </section>
 
     <section class="filter-row">
@@ -80,23 +79,8 @@
     <section class="card-grid" id="itemGrid"></section>
   </main>
 
-  <script>
-    const userBtn = document.getElementById("userBtn");
-    const userMenu = document.getElementById("userMenu");
-
-    if (userBtn && userMenu) {
-      userBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        userMenu.classList.toggle("open");
-      });
-
-      document.addEventListener("click", () => {
-        userMenu.classList.remove("open");
-      });
-    }
-  </script>
-
-  <script type="module" src="js/firebase.js"></script>
+  <script type="module" src="js/auth-guard.js"></script>
+  <script type="module" src="js/ui.js"></script>
   <script type="module" src="js/main.js"></script>
 </body>
 </html>

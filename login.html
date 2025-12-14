@@ -3,40 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <title>Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/auth.css" />
 </head>
 <body>
 
-<div class="auth-card">
-  <h1>Login</h1>
-
-  <form id="loginForm">
-    <div class="field">
-      <label>Username / Email</label>
-      <input type="email" id="email" placeholder="Type your email" required />
+  <!-- ✅ Header แบบหน้า index แต่เอาปุ่ม/ข้อความออก -->
+  <header class="topbar">
+    <div class="brand-center">
+      <img
+        id="brandLogo"
+        class="brand-logo-rotator"
+        alt="Brand Logo"
+        src=""
+      />
     </div>
+  </header>
 
-    <div class="field">
-      <label>Password</label>
-      <input type="password" id="password" placeholder="Type your password" required />
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-head">
+        <h1>Welcome back</h1>
+        <p>Login to continue using Campus Lost & Found.</p>
+      </div>
+
+      <form id="loginForm" class="auth-form">
+        <div class="field">
+          <label for="email">Email</label>
+          <input type="email" id="email" placeholder="you@example.com" required />
+        </div>
+
+        <div class="field">
+          <label for="password">Password</label>
+          <input type="password" id="password" placeholder="Your password" required />
+        </div>
+
+        <div class="row-between">
+          <div class="forgot">
+            <a href="#" onclick="alert('Implement reset password later'); return false;">Forgot password?</a>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" type="submit">Login</button>
+
+        <div class="divider">or</div>
+
+        <button type="button" id="googleLogin" class="btn btn-google">
+          <span class="g">G</span>
+          Continue with Google
+        </button>
+      </form>
+
+      <p class="switch">
+        No account? <a href="register.html">Create one</a>
+      </p>
     </div>
-
-    <div class="forgot">Forgot password?</div>
-
-    <button class="btn-gradient" type="submit">LOGIN</button>
-  </form>
-
-  <div class="divider">Or Sign In Using</div>
-
-  <div class="social">
-    <button id="googleLogin" class="google">G</button>
   </div>
 
-  <p class="switch">
-    No account? <a href="register.html">Register</a>
-  </p>
-</div>
-
-<script type="module" src="js/login.js"></script>
+  <script type="module" src="js/auth-guard.js"></script>
+  <script type="module" src="js/logo-rotator.js"></script>
+  <script type="module" src="js/login.js"></script>
 </body>
 </html>

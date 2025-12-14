@@ -5,19 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create Post - Campus Lost & Found</title>
 
-  <!-- Global styles -->
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/layout.css" />
 
-  <!-- Leaflet -->
-  <link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-  />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 </head>
 
 <body>
-  <!-- ================= Topbar ================= -->
   <header class="topbar">
     <div class="topbar-left">
       <button class="icon-button" onclick="history.back()" aria-label="Back">←</button>
@@ -37,30 +31,22 @@
           <button class="user-item" type="button">Profile</button>
           <button class="user-item" type="button">My Posts</button>
           <hr />
-          <button class="user-item danger" type="button">Logout</button>
+          <button class="user-item danger" type="button" data-action="logout">Logout</button>
         </div>
       </div>
     </div>
   </header>
 
-  <!-- ================= Page ================= -->
   <main class="page">
     <section class="card pad">
       <h2 class="section-title">Post information</h2>
 
       <form id="postForm" style="display:grid; gap: var(--s-4);">
-        <!-- Title -->
         <div>
           <label for="title">Title</label>
-          <input
-            type="text"
-            id="title"
-            required
-            placeholder="เช่น กระเป๋าสตางค์สีดำ"
-          />
+          <input type="text" id="title" required placeholder="เช่น กระเป๋าสตางค์สีดำ" />
         </div>
 
-        <!-- Type + Image -->
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: var(--s-4);">
           <div>
             <label for="type">Type</label>
@@ -76,22 +62,12 @@
           </div>
         </div>
 
-        <!-- Location + Map -->
         <div>
           <label for="location">Location</label>
-          <input
-            type="text"
-            id="location"
-            placeholder="Click on the map"
-            required
-          />
+          <input type="text" id="location" placeholder="Click on the map" required />
 
           <div style="margin-top: var(--s-2);">
-            <button
-              type="button"
-              id="useCurrentLocation"
-              class="secondary-button"
-            >
+            <button type="button" id="useCurrentLocation" class="secondary-button">
               ใช้ตำแหน่งปัจจุบันของฉัน
             </button>
           </div>
@@ -101,49 +77,18 @@
           </div>
         </div>
 
-        <!-- Description -->
         <div>
           <label for="description">Description</label>
-          <textarea
-            id="description"
-            required
-            placeholder="รายละเอียดเพิ่มเติม เช่น สี / ยี่ห้อ / จุดที่หาย"
-          ></textarea>
+          <textarea id="description" required placeholder="รายละเอียดเพิ่มเติม เช่น สี / ยี่ห้อ / จุดที่หาย"></textarea>
         </div>
 
-        <!-- Submit -->
-        <button type="submit" class="primary-button full-width">
-          Submit
-        </button>
+        <button type="submit" class="primary-button full-width">Submit</button>
       </form>
     </section>
   </main>
 
-  <!-- ================= Scripts ================= -->
-
-  <!-- User menu -->
-  <script>
-    const userBtn = document.getElementById("userBtn");
-    const userMenu = document.getElementById("userMenu");
-
-    if (userBtn && userMenu) {
-      userBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        const open = userMenu.classList.toggle("open");
-        userBtn.setAttribute("aria-expanded", String(open));
-      });
-
-      document.addEventListener("click", () => {
-        userMenu.classList.remove("open");
-        userBtn.setAttribute("aria-expanded", "false");
-      });
-    }
-  </script>
-
-  <!-- Leaflet JS -->
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-  <!-- Map logic (FIXED) -->
   <script>
     const DEFAULT_LAT = 13.650823117723881;
     const DEFAULT_LNG = 100.49388527870178;
@@ -162,10 +107,7 @@
         attribution: "© OpenStreetMap"
       }).addTo(map);
 
-      // ⭐ สำคัญ: บังคับให้ leaflet คำนวณขนาดใหม่
-      setTimeout(() => {
-        map.invalidateSize();
-      }, 200);
+      setTimeout(() => map.invalidateSize(), 200);
 
       map.on("click", (e) => {
         setMarker(e.latlng.lat, e.latlng.lng);
@@ -178,30 +120,28 @@
       document.getElementById("location").value = `${lat}, ${lng}`;
     }
 
-    document
-      .getElementById("useCurrentLocation")
-      .addEventListener("click", () => {
-        if (!navigator.geolocation) {
-          alert("เบราว์เซอร์ไม่รองรับตำแหน่งปัจจุบัน");
-          return;
-        }
+    document.getElementById("useCurrentLocation").addEventListener("click", () => {
+      if (!navigator.geolocation) {
+        alert("เบราว์เซอร์ไม่รองรับตำแหน่งปัจจุบัน");
+        return;
+      }
 
-        navigator.geolocation.getCurrentPosition(
-          (pos) => {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            setMarker(lat, lng);
-            map.setView([lat, lng], 17);
-          },
-          () => alert("ไม่สามารถดึงตำแหน่งปัจจุบันได้")
-        );
-      });
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          setMarker(lat, lng);
+          map.setView([lat, lng], 17);
+        },
+        () => alert("ไม่สามารถดึงตำแหน่งปัจจุบันได้")
+      );
+    });
 
-    // ✅ รอให้ DOM + layout พร้อมก่อน
     window.addEventListener("load", initMap);
   </script>
 
-  <!-- Firebase / submit logic -->
+  <script type="module" src="js/auth-guard.js"></script>
+  <script type="module" src="js/ui.js"></script>
   <script type="module" src="js/post-form.js"></script>
 </body>
 </html>
