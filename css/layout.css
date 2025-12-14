@@ -31,11 +31,20 @@
   min-width: 0;
 }
 
-.topbar-title {
-  font-weight: 950;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+/* ✅ โลโก้แทนชื่อ ModFinder+ */
+.brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-width: 0;
+}
+
+.brand-logo {
+  height: 32px;          /* ปรับขนาดโลโก้ตรงนี้ */
+  width: auto;
+  display: block;
+  object-fit: contain;
+  border-radius: 10px;
 }
 
 .topbar-actions {
@@ -207,6 +216,7 @@
 }
 
 /* ================= Search bar ================= */
+/* ✅ โค้งมากขึ้น + เอากรอบนอกออก ตามที่ขอ */
 
 .search-bar {
   display: grid;
@@ -215,11 +225,11 @@
   gap: var(--s-2);
 
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-1);
+  border: none;              /* ✅ เอากรอบนอกออก */
+  box-shadow: none;          /* ✅ เอาเงากรอบนอกออก */
+  border-radius: var(--r-pill); /* ✅ โค้งมากขึ้น */
 
-  padding: 0.85rem 1rem;
+  padding: 0.95rem 1.05rem;
   margin-top: var(--s-4);
 }
 
@@ -248,8 +258,8 @@
   font-weight: 900;
 }
 
+/* ✅ ให้มี ring ตอนโฟกัสแทนกรอบ */
 .search-bar:focus-within {
-  border-color: var(--brand);
   box-shadow: 0 0 0 4px var(--ring-brand);
 }
 
