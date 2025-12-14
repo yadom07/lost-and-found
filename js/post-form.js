@@ -1,18 +1,23 @@
-// post-form.js
-import { db } from "./firebase.js";
+// ./js/post-form.js (REPLACE WHOLE FILE)
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 import {
   collection,
   addDoc,
   serverTimestamp,
   doc,
-  getDoc
+  getDoc,
+  setDoc
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-import { auth } from "./firebase.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 // ใส่ API Key ของคุณ
 const IMGBB_API_KEY = "b52fa7a68decc010c1835f4bb6cbd2d0";
+
+/* ---------------- helpers: redirect login (no alert) ---------------- */
+function redirectToLogin() {
+  const next = encodeURIComponent("post-form.html");
+  window.location.replace(`login.html?next=${next}`);
+}
 
 /* ---------------- DOM ---------------- */
 const posterNameInput = document.getElementById("posterName");
@@ -46,12 +51,18 @@ function pickNameFromEmail(email) {
 
 function setErr(inputEl, errEl, msg) {
   if (inputEl) inputEl.classList.add("invalid");
-  if (errEl) errEl.textContent = msg || "";
+  if (errEl) {
+    errEl.textContent = msg || "";
+    errEl.style.display = msg ? "block" : "none";
+  }
 }
 
 function clearErr(inputEl, errEl) {
   if (inputEl) inputEl.classList.remove("invalid");
-  if (errEl) errEl.textContent = "";
+  if (errEl) {
+    errEl.textContent = "";
+    errEl.style.display = "none";
+  }
 }
 
 function showContactValue() {
@@ -63,21 +74,60 @@ function hideContactValue() {
   if (contactValueEl) contactValueEl.value = "";
 }
 
-/* ---------------- load profile from Firestore ---------------- */
-async function loadUserDoc(user) {
+/* ---------------- ensure + load profile from Firestore ---------------- */
+async function ensureAndLoadUserDoc(user) {
+  const ref = doc(db, "users", user.uid);
+
   try {
-    const snap = await getDoc(doc(db, "users", user.uid));
-    if (snap.exists()) return snap.data();
+    const snap = await getDoc(ref);
+    if (snap.exists()) return snap.data() || {};
+
+    // ถ้าไม่มี doc → สร้างขั้นต่ำให้
+    const base = {
+      uid: user.uid,
+      email: user.email || "",
+      fullName: user.displayName || "",
+      phone: "",
+      lineId: "",
+      instagram: "",
+      facebook: "",
+      contactPreference: "",
+      photoURL: user.photoURL || "",
+      provider: (user.providerData?.[0]?.providerId || "password"),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    await setDoc(ref, base, { merge: true });
+    const snap2 = await getDoc(ref);
+    return snap2.exists() ? (snap2.data() || {}) : base;
   } catch (e) {
-    console.warn("loadUserDoc failed:", e);
+    console.warn("ensureAndLoadUserDoc failed:", e?.code, e?.message, e);
+
+    if (String(e?.code || "") === "permission-denied") {
+      setErr(
+        posterNameInput,
+        posterNameError,
+        "Permission denied: Firestore rules block reading users/{uid}. Please publish correct Firestore Rules."
+      );
+    } else {
+      setErr(
+        posterNameInput,
+        posterNameError,
+        "Cannot load profile from database. Check console for details."
+      );
+    }
+    return null;
   }
-  return null;
 }
 
 async function syncProfile(user) {
   cachedProfile.email = user?.email || "";
 
-  const u = await loadUserDoc(user);
+  // reset UI errors
+  clearErr(posterNameInput, posterNameError);
+
+  const u = await ensureAndLoadUserDoc(user);
 
   const fullName =
     user?.displayName ||
@@ -92,9 +142,8 @@ async function syncProfile(user) {
   cachedProfile.phone = String(u?.phone || "").trim();
   cachedProfile.facebook = String(u?.facebook || "").trim();
   cachedProfile.instagram = String(u?.instagram || "").trim();
-  cachedProfile.lineId = String(u?.lineId || "").trim(); // ✅ LINE
+  cachedProfile.lineId = String(u?.lineId || u?.line || "").trim();
 
-  clearErr(posterNameInput, posterNameError);
   if (posterNameInput) posterNameInput.value = cachedPosterName;
 
   if (contactMethodEl && contactMethodEl.value) {
@@ -131,21 +180,22 @@ function applyContactMethod(method) {
   if (contactValueEl) contactValueEl.value = value;
 
   if (!value) {
-    setErr(contactValueEl, contactValueError, `No ${meta.label} found in your registered profile.`);
+    setErr(
+      contactValueEl,
+      contactValueError,
+      `No ${meta.label} found in your registered profile. Please go to Profile and save it.`
+    );
   }
 }
 
 if (contactMethodEl) {
-  contactMethodEl.addEventListener("change", () => {
-    applyContactMethod(contactMethodEl.value);
-  });
+  contactMethodEl.addEventListener("change", () => applyContactMethod(contactMethodEl.value));
 }
 
-/* ---------------- auth guard + init ---------------- */
+/* ---------------- auth guard + init (NO ALERT) ---------------- */
 onAuthStateChanged(auth, async (user) => {
   if (!user) {
-    alert("Please login first");
-    window.location.href = "index.html";
+    redirectToLogin();
     return;
   }
 
@@ -217,8 +267,7 @@ document.getElementById("postForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
   if (!currentUser) {
-    alert("Please login first");
-    window.location.href = "index.html";
+    redirectToLogin();
     return;
   }
 
@@ -251,52 +300,71 @@ document.getElementById("postForm").addEventListener("submit", async (e) => {
 
   let imageUrl = "";
 
-  if (file) {
-    const reader = new FileReader();
-    const base64 = await new Promise((resolve, reject) => {
-      reader.onload = () => resolve(reader.result.split(",")[1]);
-      reader.onerror = (error) => reject(error);
-      reader.readAsDataURL(file);
-    });
+  try {
+    if (file) {
+      const reader = new FileReader();
+      const base64 = await new Promise((resolve, reject) => {
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(file);
+      });
 
-    const formData = new FormData();
-    formData.append("key", IMGBB_API_KEY);
-    formData.append("image", base64);
+      const formData = new FormData();
+      formData.append("key", IMGBB_API_KEY);
+      formData.append("image", base64);
 
-    const res = await fetch("https://api.imgbb.com/1/upload", {
-      method: "POST",
-      body: formData
-    });
+      const res = await fetch("https://api.imgbb.com/1/upload", {
+        method: "POST",
+        body: formData
+      });
 
-    const data = await res.json();
-    if (data.success) {
-      imageUrl = data.data.url;
-    } else {
-      console.error("ImgBB upload failed:", data);
-      alert("Upload image failed!");
+      const data = await res.json();
+      if (data.success) imageUrl = data.data.url;
+      else throw new Error("ImgBB upload failed");
     }
+
+    const aiFields = await enrichWithAI({ title, description });
+
+    const now = new Date();
+    const clientTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone || "Unknown";
+    const tzOffsetMinutes = -now.getTimezoneOffset();
+    const createdAtClientISO = now.toISOString();
+    const createdAtClientEpochMs = now.getTime();
+    const createdAtClientBangkok = new Intl.DateTimeFormat("en-GB", {
+      dateStyle: "medium",
+      timeStyle: "medium",
+      timeZone: "Asia/Bangkok"
+    }).format(now);
+
+    await addDoc(collection(db, "posts"), {
+      title,
+      type,
+      location,
+      description,
+      imageUrl,
+
+      createdAt: serverTimestamp(),
+
+      createdAtClientISO,
+      createdAtClientEpochMs,
+      createdAtClientTimeZone: clientTimeZone,
+      createdAtClientTzOffsetMinutes: tzOffsetMinutes,
+      createdAtClientBangkok,
+
+      posterUid: currentUser.uid,
+      posterEmail: currentUser.email || "",
+      posterName,
+
+      contactMethod,
+      contactValue,
+
+      ...aiFields
+    });
+
+    alert("Post created!");
+    window.location.href = "index.html";
+  } catch (err) {
+    console.error(err);
+    alert("Create post failed. Please check console + Firestore rules.");
   }
-
-  const aiFields = await enrichWithAI({ title, description });
-
-  await addDoc(collection(db, "posts"), {
-    title,
-    type,
-    location,
-    description,
-    imageUrl,
-    createdAt: serverTimestamp(),
-
-    posterUid: currentUser.uid,
-    posterEmail: currentUser.email || "",
-    posterName,
-
-    contactMethod,
-    contactValue,
-
-    ...aiFields
-  });
-
-  alert("Post created!");
-  window.location.href = "index.html";
 });

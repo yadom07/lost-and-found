@@ -13,9 +13,26 @@ const filterButtons = document.querySelectorAll(".chip");
 const searchInput = document.getElementById("searchInput");
 const clearSearchBtn = document.getElementById("clearSearch");
 
+/* ✅ Sort icon menu */
+const sortBtn = document.getElementById("sortBtn");
+const sortMenu = document.getElementById("sortMenu");
+
+const sortHintEl = document.getElementById("sortHint");
+
+const sortByButtons = Array.from(document.querySelectorAll("[data-sortby]"));
+const sortDirButtons = Array.from(document.querySelectorAll("[data-sortdir]"));
+
+const orderDescLabel = document.getElementById("orderDescLabel");
+const orderAscLabel = document.getElementById("orderAscLabel");
+
 /* ---------------- STATE ---------------- */
+/* ✅ default: priority high -> low */
 let activeFilter = "all";
 let activeQuery = "";
+
+let sortBy = "priority"; // priority | time
+let sortDir = "desc";    // desc | asc
+
 let cachedPosts = [];
 
 /* ---------------- helpers ---------------- */
@@ -36,6 +53,90 @@ function matchesSearch(post, q) {
 function renderEmpty(msg) {
   if (!grid) return;
   grid.innerHTML = `<div class="card pad">${msg}</div>`;
+}
+
+function getPostTimeMs(post) {
+  if (post?.createdAt?.seconds) return post.createdAt.seconds * 1000;
+  if (typeof post?.createdAtClientEpochMs === "number") return post.createdAtClientEpochMs;
+  if (typeof post?.createdAtClientISO === "string") {
+    const t = Date.parse(post.createdAtClientISO);
+    if (!Number.isNaN(t)) return t;
+  }
+  return 0;
+}
+
+function getPriorityScore(post) {
+  const s = post?.importanceScore;
+  if (typeof s === "number") return s;
+  return 0;
+}
+
+function updateOrderLabels() {
+  if (!orderDescLabel || !orderAscLabel) return;
+
+  if (sortBy === "time") {
+    orderDescLabel.textContent = "Newest → Oldest";
+    orderAscLabel.textContent = "Oldest → Newest";
+    if (sortHintEl) sortHintEl.textContent = "Post time: newest → oldest";
+  } else {
+    orderDescLabel.textContent = "High → Low";
+    orderAscLabel.textContent = "Low → High";
+    if (sortHintEl) sortHintEl.textContent = "Priority: high → low";
+  }
+}
+
+function comparePosts(a, b) {
+  const A = a.data;
+  const B = b.data;
+
+  const dir = sortDir === "asc" ? 1 : -1;
+
+  if (sortBy === "time") {
+    const ta = getPostTimeMs(A);
+    const tb = getPostTimeMs(B);
+    if (ta !== tb) return (ta - tb) * dir;
+
+    // tie-breaker: priority
+    const pa = getPriorityScore(A);
+    const pb = getPriorityScore(B);
+    if (pa !== pb) return (pa - pb) * -1;
+
+    return String(a.id).localeCompare(String(b.id));
+  }
+
+  // sortBy === "priority"
+  const pa = getPriorityScore(A);
+  const pb = getPriorityScore(B);
+  if (pa !== pb) return (pa - pb) * dir;
+
+  // tie-breaker: newest first when priority ties
+  const ta = getPostTimeMs(A);
+  const tb = getPostTimeMs(B);
+  if (ta !== tb) return (ta - tb) * -1;
+
+  return String(a.id).localeCompare(String(b.id));
+}
+
+/* ---------------- UI sync (✓ selected) ---------------- */
+
+function syncSortUI() {
+  // sortBy
+  sortByButtons.forEach((btn) => {
+    const v = btn.dataset.sortby;
+    const selected = v === sortBy;
+    btn.classList.toggle("selected", selected);
+    btn.setAttribute("aria-checked", String(selected));
+  });
+
+  // sortDir
+  sortDirButtons.forEach((btn) => {
+    const v = btn.dataset.sortdir;
+    const selected = v === sortDir;
+    btn.classList.toggle("selected", selected);
+    btn.setAttribute("aria-checked", String(selected));
+  });
+
+  updateOrderLabels();
 }
 
 /* ---------------- render ---------------- */
@@ -90,9 +191,9 @@ function renderPosts(list) {
   }
 }
 
-/* ---------------- filter + search ---------------- */
+/* ---------------- filter + search + sort ---------------- */
 
-function applyFilterAndSearch() {
+function applyFilterSearchSort() {
   const q = normalizeText(activeQuery);
 
   const filtered = cachedPosts.filter(({ data }) => {
@@ -100,16 +201,11 @@ function applyFilterAndSearch() {
     return typeOk && matchesSearch(data, q);
   });
 
+  filtered.sort(comparePosts);
   renderPosts(filtered);
 }
 
 /* ---------------- data ---------------- */
-
-function applyAIPriority(posts) {
-  return posts.sort(
-    (a, b) => (b.data.importanceScore ?? 0) - (a.data.importanceScore ?? 0)
-  );
-}
 
 async function loadPostsOnce() {
   const q = query(collection(db, "posts"), orderBy("createdAt", "desc"));
@@ -120,8 +216,7 @@ async function loadPostsOnce() {
     data: d.data(),
   }));
 
-  cachedPosts = applyAIPriority(cachedPosts);
-  applyFilterAndSearch();
+  applyFilterSearchSort();
 }
 
 /* ---------------- events ---------------- */
@@ -131,7 +226,7 @@ filterButtons.forEach((btn) => {
     filterButtons.forEach((b) => b.classList.remove("active"));
     btn.classList.add("active");
     activeFilter = btn.dataset.filter;
-    applyFilterAndSearch();
+    applyFilterSearchSort();
   };
 });
 
@@ -141,7 +236,7 @@ if (searchInput) {
     clearTimeout(t);
     t = setTimeout(() => {
       activeQuery = e.target.value;
-      applyFilterAndSearch();
+      applyFilterSearchSort();
     }, 120);
   };
 }
@@ -150,9 +245,61 @@ if (clearSearchBtn) {
   clearSearchBtn.onclick = () => {
     if (searchInput) searchInput.value = "";
     activeQuery = "";
-    applyFilterAndSearch();
+    applyFilterSearchSort();
   };
 }
+
+/* ✅ Sort dropdown open/close */
+function closeSortMenu() {
+  if (!sortMenu || !sortBtn) return;
+  sortMenu.classList.remove("open");
+  sortBtn.setAttribute("aria-expanded", "false");
+}
+
+function toggleSortMenu() {
+  if (!sortMenu || !sortBtn) return;
+  const open = sortMenu.classList.toggle("open");
+  sortBtn.setAttribute("aria-expanded", String(open));
+}
+
+if (sortBtn && sortMenu) {
+  sortBtn.addEventListener("click", (e) => {
+    e.stopPropagation();
+    toggleSortMenu();
+  });
+
+  sortMenu.addEventListener("click", (e) => e.stopPropagation());
+
+  document.addEventListener("click", () => closeSortMenu());
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") closeSortMenu();
+  });
+}
+
+/* ✅ Clickable color options */
+sortByButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const v = btn.dataset.sortby || "priority";
+    sortBy = v;
+
+    // keep current sortDir as-is, just update labels + UI
+    syncSortUI();
+    applyFilterSearchSort();
+  });
+});
+
+sortDirButtons.forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const v = btn.dataset.sortdir || "desc";
+    sortDir = v;
+
+    syncSortUI();
+    applyFilterSearchSort();
+  });
+});
+
+/* init UI */
+syncSortUI();
 
 /* ---------------- start ---------------- */
 loadPostsOnce().catch(() => renderEmpty("Failed to load posts."));
