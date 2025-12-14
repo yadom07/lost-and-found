@@ -77,7 +77,7 @@ function renderPosts(list) {
     const score = post.importanceScore ?? 0;
     const priority = document.createElement("div");
     priority.className = "priority-wrapper";
-    if (score >= 0.64) priority.textContent = "🔥 High Priority";
+    if (score >= 0.55) priority.textContent = "🔥 High Priority";
     else if (score >= 0.3) priority.textContent = "⚠️ Medium Priority";
     else priority.textContent = "Low Priority";
 
@@ -155,4 +155,5 @@ if (clearSearchBtn) {
 }
 
 /* ---------------- start ---------------- */
+
 loadPostsOnce().catch(() => renderEmpty("Failed to load posts."));
