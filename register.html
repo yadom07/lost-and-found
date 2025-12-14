@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Register</title>
+  <title>Register - ModFinder+</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="stylesheet" href="css/base.css" />
@@ -16,7 +16,6 @@
     </div>
   </header>
 
-  <!-- ✅ กว้างขึ้น -->
   <div class="auth-wrap auth-wrap-wide">
     <div class="auth-card">
       <div class="auth-head">
@@ -26,7 +25,6 @@
 
       <form id="registerForm" class="auth-form" novalidate>
 
-        <!-- ================= REQUIRED ================= -->
         <div class="grid-2">
           <div class="field">
             <label for="firstName">First Name</label>
@@ -64,7 +62,6 @@
             <div class="field-error" id="confirmPasswordError"></div>
           </div>
 
-          <!-- ✅ เงื่อนไขรหัส: ให้กว้างเต็ม 2 ช่อง -->
           <div class="policy span-2" id="passwordPolicyBox" aria-live="polite">
             <div class="policy-title">Password must have:</div>
             <ul class="policy-list" id="policyList">
@@ -76,7 +73,6 @@
           </div>
         </div>
 
-        <!-- ================= OPTIONAL ================= -->
         <div class="divider">more info</div>
 
         <div class="grid-2">
@@ -106,7 +102,6 @@
             </select>
           </div>
 
-          <!-- ✅ สลับตำแหน่ง: ให้ LINE ID มาอยู่ช่องขวาบน (แทน Preferred contact เดิม) -->
           <div class="field">
             <label for="lineId">LINE ID (optional)</label>
             <input type="text" id="lineId" placeholder="e.g. @lineid" />
@@ -122,7 +117,6 @@
             <input type="text" id="instagram" placeholder="e.g. @jane_doe" />
           </div>
 
-          <!-- ✅ สลับตำแหน่ง: Preferred contact ไปอยู่แถวล่าง และเอาตัวอย่างในช่องออก -->
           <div class="field span-2">
             <label for="contactPreference">Preferred contact (optional)</label>
             <select id="contactPreference">
@@ -136,7 +130,6 @@
           </div>
         </div>
 
-        <!-- ✅ ปุ่มลงทะเบียนอยู่ล่างสุด -->
         <button class="btn btn-primary" type="submit">Create account</button>
 
         <div class="divider">or</div>
