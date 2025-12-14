@@ -1,6 +1,5 @@
 /* =========================================================
    layout.css — Unified UI (NO raw colors, NO gradients)
-   + Search bar
    ========================================================= */
 
 .page {
@@ -100,6 +99,25 @@
   box-shadow: var(--shadow-1);
 }
 
+.full-width { width: 100%; }
+
+/* ================= Card helpers ================= */
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-1);
+}
+
+.pad { padding: var(--s-4); }
+
+.section-title {
+  font-weight: 950;
+  font-size: 1.05rem;
+  margin-bottom: var(--s-2);
+}
+
 /* ================= User Menu ================= */
 
 .user-menu { position: relative; }
@@ -145,7 +163,7 @@
   right: 0;
   top: calc(100% + var(--s-2));
 
-  min-width: 210px;
+  min-width: 220px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
@@ -228,10 +246,6 @@
 .search-input::placeholder {
   color: var(--text-muted);
   font-weight: 900;
-}
-
-.search-input:focus {
-  box-shadow: none;
 }
 
 .search-bar:focus-within {
@@ -378,7 +392,13 @@
   border-color: var(--found);
 }
 
-/* Map wrapper (for other pages) */
+.priority-wrapper{
+  font-weight: 950;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+/* Map wrapper */
 .map-wrap {
   border: 1px solid var(--border);
   border-radius: var(--r-md);
@@ -405,3 +425,29 @@
   font-weight: 900;
   font-size: 0.9rem;
 }
+
+/* ================= Detail page ================= */
+
+.detail-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: var(--s-4);
+  margin-bottom: var(--s-4);
+}
+
+@media (max-width: 860px) {
+  .detail-layout { grid-template-columns: 1fr; }
+}
+
+.detail-image {
+  width: 100%;
+  min-height: 320px;
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-1);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.detail-image.placeholder { background: var(--bg); }
