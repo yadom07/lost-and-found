@@ -10,46 +10,133 @@
 </head>
 <body>
 
-  <!-- ✅ Header แบบหน้า index แต่เอาปุ่ม/ข้อความออก -->
   <header class="topbar">
     <div class="brand-center">
-      <img
-        id="brandLogo"
-        class="brand-logo-rotator"
-        alt="Brand Logo"
-        src=""
-      />
+      <img id="brandLogo" class="brand-logo-rotator" alt="Brand Logo" src="" />
     </div>
   </header>
 
-  <div class="auth-wrap">
+  <!-- ✅ กว้างขึ้น -->
+  <div class="auth-wrap auth-wrap-wide">
     <div class="auth-card">
       <div class="auth-head">
         <h1>Create account</h1>
         <p>Start posting and tracking lost & found items.</p>
       </div>
 
-      <form id="registerForm" class="auth-form">
-        <div class="field">
-          <label for="firstName">First Name</label>
-          <input type="text" id="firstName" placeholder="Your first name" required />
+      <form id="registerForm" class="auth-form" novalidate>
+
+        <!-- ================= REQUIRED ================= -->
+        <div class="grid-2">
+          <div class="field">
+            <label for="firstName">First Name</label>
+            <input type="text" id="firstName" placeholder="Your first name" required />
+            <div class="field-error" id="firstNameError"></div>
+          </div>
+
+          <div class="field">
+            <label for="lastName">Last Name</label>
+            <input type="text" id="lastName" placeholder="Your last name" required />
+            <div class="field-error" id="lastNameError"></div>
+          </div>
+
+          <div class="field">
+            <label for="email">Email</label>
+            <input type="email" id="email" placeholder="you@example.com" autocomplete="email" required />
+            <div class="field-error" id="emailError"></div>
+          </div>
+
+          <div class="field">
+            <label for="phone">Phone</label>
+            <input type="text" id="phone" placeholder="e.g. 0812345678" inputmode="tel" required />
+            <div class="field-error" id="phoneError"></div>
+          </div>
+
+          <div class="field">
+            <label for="password">Password</label>
+            <input type="password" id="password" placeholder="At least 8 characters" autocomplete="new-password" required />
+            <div class="field-error" id="passwordError"></div>
+          </div>
+
+          <div class="field">
+            <label for="confirmPassword">Confirm Password</label>
+            <input type="password" id="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" required />
+            <div class="field-error" id="confirmPasswordError"></div>
+          </div>
+
+          <!-- ✅ เงื่อนไขรหัส: ให้กว้างเต็ม 2 ช่อง -->
+          <div class="policy span-2" id="passwordPolicyBox" aria-live="polite">
+            <div class="policy-title">Password must have:</div>
+            <ul class="policy-list" id="policyList">
+              <li id="pLen">At least 8 characters</li>
+              <li id="pUpper">An uppercase letter (A–Z)</li>
+              <li id="pLower">A lowercase letter (a–z)</li>
+              <li id="pNum">A number (0–9)</li>
+            </ul>
+          </div>
         </div>
 
-        <div class="field">
-          <label for="lastName">Last Name</label>
-          <input type="text" id="lastName" placeholder="Your last name" required />
+        <!-- ================= OPTIONAL ================= -->
+        <div class="divider">more info</div>
+
+        <div class="grid-2">
+          <div class="field">
+            <label for="faculty">Faculty (optional)</label>
+            <select id="faculty">
+              <option value="">Select faculty</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="department">Department / Major (optional)</label>
+            <select id="department" disabled>
+              <option value="">Select major</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="year">Year (optional)</label>
+            <select id="year">
+              <option value="">Select year</option>
+              <option value="1">Year 1</option>
+              <option value="2">Year 2</option>
+              <option value="3">Year 3</option>
+              <option value="4">Year 4</option>
+              <option value="5+">Year 5+</option>
+            </select>
+          </div>
+
+          <!-- ✅ สลับตำแหน่ง: ให้ LINE ID มาอยู่ช่องขวาบน (แทน Preferred contact เดิม) -->
+          <div class="field">
+            <label for="lineId">LINE ID (optional)</label>
+            <input type="text" id="lineId" placeholder="e.g. @lineid" />
+          </div>
+
+          <div class="field">
+            <label for="facebook">Facebook (optional)</label>
+            <input type="text" id="facebook" placeholder="e.g. Jane Doe" />
+          </div>
+
+          <div class="field">
+            <label for="instagram">Instagram (optional)</label>
+            <input type="text" id="instagram" placeholder="e.g. @jane_doe" />
+          </div>
+
+          <!-- ✅ สลับตำแหน่ง: Preferred contact ไปอยู่แถวล่าง และเอาตัวอย่างในช่องออก -->
+          <div class="field span-2">
+            <label for="contactPreference">Preferred contact (optional)</label>
+            <select id="contactPreference">
+              <option value="">Select preference</option>
+              <option value="email">Email</option>
+              <option value="phone">Phone</option>
+              <option value="line">LINE</option>
+              <option value="instagram">Instagram</option>
+              <option value="facebook">Facebook</option>
+            </select>
+          </div>
         </div>
 
-        <div class="field">
-          <label for="email">Email</label>
-          <input type="email" id="email" placeholder="you@example.com" required />
-        </div>
-
-        <div class="field">
-          <label for="password">Password</label>
-          <input type="password" id="password" placeholder="At least 6 characters" required />
-        </div>
-
+        <!-- ✅ ปุ่มลงทะเบียนอยู่ล่างสุด -->
         <button class="btn btn-primary" type="submit">Create account</button>
 
         <div class="divider">or</div>

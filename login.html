@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Login</title>
+  <title>Login - ModFinder+</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="stylesheet" href="css/base.css" />
@@ -10,15 +10,9 @@
 </head>
 <body>
 
-  <!-- ✅ Header แบบหน้า index แต่เอาปุ่ม/ข้อความออก -->
   <header class="topbar">
     <div class="brand-center">
-      <img
-        id="brandLogo"
-        class="brand-logo-rotator"
-        alt="Brand Logo"
-        src=""
-      />
+      <img id="brandLogo" class="brand-logo-rotator" alt="Brand Logo" src="" />
     </div>
   </header>
 
@@ -26,23 +20,26 @@
     <div class="auth-card">
       <div class="auth-head">
         <h1>Welcome back</h1>
-        <p>Login to continue using Campus Lost & Found.</p>
+        <p>Login to continue using ModFinder+.</p>
       </div>
 
-      <form id="loginForm" class="auth-form">
+      <form id="loginForm" class="auth-form" novalidate>
         <div class="field">
           <label for="email">Email</label>
           <input type="email" id="email" placeholder="you@example.com" required />
+          <div class="field-error" id="emailError"></div>
         </div>
 
         <div class="field">
           <label for="password">Password</label>
           <input type="password" id="password" placeholder="Your password" required />
+          <div class="field-error" id="passwordError"></div>
         </div>
 
         <div class="row-between">
           <div class="forgot">
-            <a href="#" onclick="alert('Implement reset password later'); return false;">Forgot password?</a>
+            <!-- ✅ เด้งไปหน้า reset -->
+            <a id="forgotPassword" href="reset.html">Forgot password?</a>
           </div>
         </div>
 

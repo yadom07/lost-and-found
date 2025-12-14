@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Reset Password - ModFinder+</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand-center">
+      <img id="brandLogo" class="brand-logo-rotator" alt="Brand Logo" src="" />
+    </div>
+  </header>
+
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="auth-head">
+        <h1>Reset password</h1>
+        <p>Enter your email to receive a reset link.</p>
+      </div>
+
+      <form id="resetForm" class="auth-form" novalidate>
+        <div class="field">
+          <label for="email">Email</label>
+          <input
+            type="email"
+            id="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+            required
+          />
+          <div class="field-error" id="emailError" aria-live="polite"></div>
+        </div>
+
+        <button class="btn btn-primary" type="submit">
+          Send reset email
+        </button>
+
+        <!-- ✅ โชว์เฉพาะตอน email ยังไม่เคยลงทะเบียน -->
+        <button
+          class="btn"
+          type="button"
+          id="goRegisterBtn"
+          style="display:none;"
+        >
+          Go to Register
+        </button>
+      </form>
+
+      <p class="switch">
+        Remember your password? <a href="login.html">Back to login</a>
+      </p>
+    </div>
+  </div>
+
+  <script type="module" src="js/logo-rotator.js"></script>
+  <script type="module" src="js/reset.js"></script>
+</body>
+</html>

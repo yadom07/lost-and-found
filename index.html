@@ -2,47 +2,53 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Campus Lost & Found</title>
+  <title>ModFinder+</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/layout.css" />
 </head>
 <body>
 
+  <!-- ================= Topbar ================= -->
   <header class="topbar">
     <div class="topbar-left">
       <button class="icon-button" aria-label="Menu">≡</button>
-      <div class="topbar-title">Campus Lost & Found</div>
+
+      <!-- โลโก้ -->
+      <a class="brand-link" href="index.html" aria-label="ModFinder+ Home">
+        <img
+          class="brand-logo"
+          src="https://cdn.discordapp.com/attachments/1442576170464968714/1449460316424634398/CPE101_I16_LOST__FOUND.png?ex=693efa9d&is=693da91d&hm=a76a8c31f04b169308b856f064c14cf30b90be48acab8e2f54ffb46c81dfcb7e"
+          alt="ModFinder+"
+        />
+      </a>
     </div>
 
     <div class="topbar-actions">
       <a class="primary-button" href="post-form.html">Post</a>
 
       <div class="user-menu">
-        <button class="user-button" id="userBtn" aria-haspopup="true" aria-expanded="false">
+        <button
+          class="user-button"
+          id="userBtn"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
           <span class="user-avatar">👤</span>
           <span class="user-name" id="userNameTop">User</span>
         </button>
 
-        <button
-          id="loginBtn"
-          class="secondary-button"
-          onclick="window.location.href='login.html'">
-          Login
-        </button>
-
-        <button
-          id="logoutBtn"
-          class="primary-button"
-          style="display:none">
-          Logout
-        </button>
-
+        <!-- 🔽 Dropdown -->
         <div class="user-dropdown" id="userMenu" role="menu">
           <button class="user-item" type="button">Profile</button>
           <button class="user-item" type="button">My Posts</button>
           <hr />
-          <button class="user-item danger" type="button" id="logoutMenuBtn">
+          <button
+            class="user-item danger"
+            type="button"
+            id="logoutMenuBtn"
+          >
             Logout
           </button>
         </div>
@@ -50,13 +56,16 @@
     </div>
   </header>
 
+  <!-- ================= Main ================= -->
   <main class="page">
 
     <section class="welcome-row" aria-label="Welcome">
       <div class="welcome-title">
         Welcome, <span id="welcomeName">User</span>
       </div>
-      <div class="welcome-sub">Search and filter items quickly.</div>
+      <div class="welcome-sub">
+        Search and filter items quickly.
+      </div>
     </section>
 
     <section class="search-bar" aria-label="Search">
@@ -67,7 +76,13 @@
         type="text"
         placeholder="Search by item name, description, or location..."
       />
-      <button id="clearSearch" class="search-clear" aria-label="Clear">✕</button>
+      <button
+        id="clearSearch"
+        class="search-clear"
+        aria-label="Clear"
+      >
+        ✕
+      </button>
     </section>
 
     <section class="filter-row">
@@ -79,6 +94,7 @@
     <section class="card-grid" id="itemGrid"></section>
   </main>
 
+  <!-- ================= Scripts ================= -->
   <script type="module" src="js/auth-guard.js"></script>
   <script type="module" src="js/ui.js"></script>
   <script type="module" src="js/main.js"></script>
