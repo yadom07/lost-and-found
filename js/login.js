@@ -16,8 +16,11 @@ import {
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
 
-  const email = email.value;
-  const password = password.value;
+  const emailEl = document.getElementById("email");
+  const passEl = document.getElementById("password");
+
+  const email = emailEl.value.trim();
+  const password = passEl.value;
 
   try {
     await signInWithEmailAndPassword(auth, email, password);
@@ -40,8 +43,9 @@ document.getElementById("googleLogin").onclick = async () => {
 
     if (!snap.exists()) {
       await setDoc(ref, {
-        fullName: user.displayName,
-        email: user.email,
+        uid: user.uid,
+        fullName: user.displayName || "",
+        email: user.email || "",
         provider: "google",
         createdAt: serverTimestamp()
       });

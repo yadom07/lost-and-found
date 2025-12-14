@@ -4,53 +4,73 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-
 const params = new URLSearchParams(window.location.search);
 const id = params.get("id");
 
+function safeText(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.innerText = value ?? "";
+}
+
 async function load() {
+  if (!id) return;
+
   const snap = await getDoc(doc(db, "posts", id));
   if (!snap.exists()) return;
 
   const post = snap.data();
 
-  document.getElementById("itemTitle").innerText = post.title;
-  document.getElementById("itemMeta").innerText =
-    post.location + " • " + new Date(post.createdAt.seconds * 1000).toLocaleString();
-  document.getElementById("itemDescription").innerText = post.description;
+  safeText("itemTitle", post.title || "Untitled");
+  safeText(
+    "itemMeta",
+    `${post.location || ""} • ${
+      post.createdAt?.seconds ? new Date(post.createdAt.seconds * 1000).toLocaleString() : ""
+    }`
+  );
+  safeText("itemDescription", post.description || "");
 
-  if (post.imageUrl) {
-    const imgDiv = document.getElementById("itemImage");
-    imgDiv.style.backgroundImage = `url('${post.imageUrl}')`;
-    imgDiv.style.backgroundSize = "cover";
-    imgDiv.style.backgroundPosition = "center";
-    imgDiv.style.width = "100%";
-    imgDiv.style.height = "300px";
-    imgDiv.classList.remove("placeholder");
+  const badgeEl = document.getElementById("itemBadge");
+  if (badgeEl) {
+    const t = post.type || "lost";
+    badgeEl.className = `item-badge ${t}`;
+    badgeEl.innerText = t.toUpperCase();
   }
 
-  // แสดงแผนที่
+  const imgDiv = document.getElementById("itemImage");
+  if (imgDiv) {
+    if (post.imageUrl) {
+      imgDiv.style.backgroundImage = `url('${post.imageUrl}')`;
+      imgDiv.classList.remove("placeholder");
+    } else {
+      imgDiv.classList.add("placeholder");
+    }
+  }
+
+  // Map
   const DEFAULT_LAT = 13.651021207238946;
   const DEFAULT_LNG = 100.49538731575014;
 
   let lat = DEFAULT_LAT;
   let lng = DEFAULT_LNG;
 
-  if (post.location) {
-    const parts = post.location.split(",").map(Number);
-    if (!isNaN(parts[0]) && !isNaN(parts[1])) {
+  // คาดหวังรูปแบบ "lat, lng"
+  if (typeof post.location === "string" && post.location.includes(",")) {
+    const parts = post.location.split(",").map((x) => Number(String(x).trim()));
+    if (!Number.isNaN(parts[0]) && !Number.isNaN(parts[1])) {
       lat = parts[0];
       lng = parts[1];
     }
   }
 
-  // สร้างแผนที่ด้วยค่า lat/lng ที่ได้ (ถ้าไม่มี location ก็จะเป็นค่า default)
   const map = L.map("map").setView([lat, lng], 16);
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
   }).addTo(map);
 
-  // ถ้ามีพิกัดที่มาจาก post.location ให้ปักหมุด
-  if (post.location) {
+  // ถ้ามีพิกัดจริง ค่อยปักหมุด
+  if (lat !== DEFAULT_LAT || lng !== DEFAULT_LNG) {
     L.marker([lat, lng]).addTo(map);
   }
+
+  setTimeout(() => map.invalidateSize(), 200);
 }
 
 load();

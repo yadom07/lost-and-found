@@ -25,19 +25,19 @@ document.getElementById("registerForm").addEventListener("submit", async (e) => 
     alert("Please enter your full name");
     return;
   }
+  if (password.length < 6) {
+    alert("Password must be at least 6 characters.");
+    return;
+  }
 
   try {
     const result = await createUserWithEmailAndPassword(auth, email, password);
     const user = result.user;
 
-    const fullName = `${firstName} ${lastName}`;
+    const fullName = `${firstName} ${lastName}`.trim();
 
-    // set display name
-    await updateProfile(user, {
-      displayName: fullName,
-    });
+    await updateProfile(user, { displayName: fullName });
 
-    // save user to Firestore
     await setDoc(doc(db, "users", user.uid), {
       uid: user.uid,
       fullName,
@@ -65,8 +65,8 @@ document.getElementById("googleRegister").onclick = async () => {
       doc(db, "users", user.uid),
       {
         uid: user.uid,
-        fullName: user.displayName,
-        email: user.email,
+        fullName: user.displayName || "",
+        email: user.email || "",
         provider: "google",
         createdAt: serverTimestamp(),
       },

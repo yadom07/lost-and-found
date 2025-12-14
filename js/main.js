@@ -1,17 +1,10 @@
-import { db, auth } from "./firebase.js";
+import { db } from "./firebase.js";
 import {
   collection,
   getDocs,
   query,
-  orderBy,
-  doc,
-  getDoc,
+  orderBy
 } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-
-import {
-  onAuthStateChanged,
-  signOut,
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
 
 /* ---------------- DOM ---------------- */
 const grid = document.getElementById("itemGrid");
@@ -19,51 +12,6 @@ const filterButtons = document.querySelectorAll(".chip");
 
 const searchInput = document.getElementById("searchInput");
 const clearSearchBtn = document.getElementById("clearSearch");
-
-const welcomeNameEl = document.getElementById("welcomeName");
-const userNameTopEl = document.getElementById("userNameTop");
-
-const loginBtn = document.getElementById("loginBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const logoutMenuBtn = document.getElementById("logoutMenuBtn");
-
-/* ---------------- AUTH STATE ---------------- */
-
-onAuthStateChanged(auth, async (user) => {
-  if (user) {
-    loginBtn.style.display = "none";
-    logoutBtn.style.display = "inline-block";
-
-    // 🔥 ดึงข้อมูล user จาก Firestore
-    try {
-      const snap = await getDoc(doc(db, "users", user.uid));
-      if (snap.exists()) {
-        const u = snap.data();
-        setUserName(u.displayName || pickNameFromEmail(user.email));
-      } else {
-        setUserName(pickNameFromEmail(user.email));
-      }
-    } catch (err) {
-      console.error("Load user failed", err);
-      setUserName(pickNameFromEmail(user.email));
-    }
-
-  } else {
-    loginBtn.style.display = "inline-block";
-    logoutBtn.style.display = "none";
-    setUserName("User");
-  }
-});
-
-logoutBtn.addEventListener("click", async () => {
-  await signOut(auth);
-});
-
-if (logoutMenuBtn) {
-  logoutMenuBtn.addEventListener("click", async () => {
-    await signOut(auth);
-  });
-}
 
 /* ---------------- STATE ---------------- */
 let activeFilter = "all";
@@ -86,12 +34,14 @@ function matchesSearch(post, q) {
 }
 
 function renderEmpty(msg) {
+  if (!grid) return;
   grid.innerHTML = `<div class="card pad">${msg}</div>`;
 }
 
 /* ---------------- render ---------------- */
 
 function renderPosts(list) {
+  if (!grid) return;
   grid.innerHTML = "";
 
   if (list.length === 0) {
@@ -116,12 +66,9 @@ function renderPosts(list) {
       img.classList.add("placeholder");
     }
 
-    const content = document.createElement("div");
-    content.className = "item-content";
-
     const badge = document.createElement("span");
     badge.className = `item-badge ${post.type || "lost"}`;
-    badge.textContent = post.type || "lost";
+    badge.textContent = (post.type || "lost").toUpperCase();
 
     const title = document.createElement("div");
     title.className = "item-title";
@@ -130,17 +77,15 @@ function renderPosts(list) {
     const score = post.importanceScore ?? 0;
     const priority = document.createElement("div");
     priority.className = "priority-wrapper";
-
-    if (score >= 0.64) priority.innerHTML = "🔥 High Priority";
-    else if (score >= 0.3) priority.innerHTML = "⚠️ Medium Priority";
-    else priority.innerHTML = "Low Priority";
+    if (score >= 0.64) priority.textContent = "🔥 High Priority";
+    else if (score >= 0.3) priority.textContent = "⚠️ Medium Priority";
+    else priority.textContent = "Low Priority";
 
     const meta = document.createElement("div");
     meta.className = "item-meta";
     meta.textContent = post.location || "";
 
-    content.append(badge, title, priority, meta);
-    card.append(img, content);
+    card.append(img, badge, title, priority, meta);
     grid.appendChild(card);
   }
 }
@@ -151,25 +96,11 @@ function applyFilterAndSearch() {
   const q = normalizeText(activeQuery);
 
   const filtered = cachedPosts.filter(({ data }) => {
-    const typeOk =
-      activeFilter === "all" || data.type === activeFilter;
+    const typeOk = activeFilter === "all" || data.type === activeFilter;
     return typeOk && matchesSearch(data, q);
   });
 
   renderPosts(filtered);
-}
-
-/* ---------------- user name ---------------- */
-
-function pickNameFromEmail(email) {
-  if (!email) return "";
-  return email.split("@")[0];
-}
-
-function setUserName(name) {
-  const safe = name?.trim() || "User";
-  if (welcomeNameEl) welcomeNameEl.textContent = safe;
-  if (userNameTopEl) userNameTopEl.textContent = safe;
 }
 
 /* ---------------- data ---------------- */
@@ -205,19 +136,23 @@ filterButtons.forEach((btn) => {
 });
 
 let t;
-searchInput.oninput = (e) => {
-  clearTimeout(t);
-  t = setTimeout(() => {
-    activeQuery = e.target.value;
-    applyFilterAndSearch();
-  }, 120);
-};
+if (searchInput) {
+  searchInput.oninput = (e) => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      activeQuery = e.target.value;
+      applyFilterAndSearch();
+    }, 120);
+  };
+}
 
-clearSearchBtn.onclick = () => {
-  searchInput.value = "";
-  activeQuery = "";
-  applyFilterAndSearch();
-};
+if (clearSearchBtn) {
+  clearSearchBtn.onclick = () => {
+    if (searchInput) searchInput.value = "";
+    activeQuery = "";
+    applyFilterAndSearch();
+  };
+}
 
 /* ---------------- start ---------------- */
 loadPostsOnce().catch(() => renderEmpty("Failed to load posts."));
