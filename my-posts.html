@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>My Posts - ModFinder+</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+</head>
+<body>
+
+  <!-- ✅ Header like index -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="icon-button" aria-label="Menu">≡</button>
+
+      <a class="brand-link" href="index.html" aria-label="ModFinder+ Home">
+        <img
+          class="brand-logo"
+          src="https://img5.pic.in.th/file/secure-sv1/CPE101_I16_LOST__FOUND.png"
+          alt="ModFinder+"
+        />
+      </a>
+    </div>
+
+    <div class="topbar-actions">
+      <a class="primary-button" href="post-form.html">Post</a>
+
+      <div class="user-menu">
+        <button class="user-button" id="userBtn" aria-haspopup="true" aria-expanded="false">
+          <span class="user-avatar">👤</span>
+          <span class="user-name" id="userNameTop">User</span>
+        </button>
+
+        <div class="user-dropdown" id="userMenu" role="menu">
+          <button class="user-item" type="button" data-action="profile">Profile</button>
+          <button class="user-item" type="button" data-action="my-posts">My Posts</button>
+          <hr />
+          <button class="user-item danger" type="button" data-action="logout">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="card pad">
+      <h2 class="section-title">Your posts</h2>
+      <section class="card-grid" id="myPostGrid"></section>
+    </section>
+  </main>
+
+  <script type="module" src="js/auth-guard.js"></script>
+  <script type="module" src="js/ui.js"></script>
+  <script type="module" src="js/my-posts.js"></script>
+</body>
+</html>

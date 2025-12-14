@@ -7,6 +7,168 @@
 
   <link rel="stylesheet" href="css/base.css" />
   <link rel="stylesheet" href="css/layout.css" />
+
+  <style>
+    /* ===== Index: Filter + Sort icon ===== */
+    .filter-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--s-3);
+      margin: var(--s-4) 0;
+    }
+    .filter-bar .filter-row { margin: 0; }
+
+    .sort-menu { position: relative; flex-shrink: 0; }
+
+    .sort-icon-btn {
+      padding: 0.45rem 0.75rem;
+      border-radius: var(--r-pill);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      font-weight: 950;
+      box-shadow: var(--shadow-1);
+      transition:
+        transform var(--dur-1) var(--ease),
+        box-shadow var(--dur-1) var(--ease),
+        background var(--dur-1) var(--ease);
+    }
+    .sort-icon-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-2);
+      background: var(--brand-soft);
+    }
+
+    .sort-dropdown {
+      position: absolute;
+      right: 0;
+      top: calc(100% + var(--s-2));
+      min-width: 290px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-md);
+      box-shadow: var(--shadow-2);
+      padding: var(--s-3);
+      display: none;
+      z-index: 80;
+    }
+    .sort-dropdown.open { display: grid; gap: var(--s-4); }
+
+    .sort-title {
+      font-weight: 1000;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--s-2);
+    }
+
+    .sort-block { display: grid; gap: var(--s-2); }
+    .sort-label {
+      font-weight: 1000;
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    .opt-list { display: grid; gap: var(--s-2); }
+
+    .opt {
+      width: 100%;
+      text-align: left;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: var(--s-3);
+
+      padding: 0.7rem 0.75rem;
+      border-radius: var(--r-md);
+      border: 1px solid var(--border);
+      background: var(--surface);
+      box-shadow: var(--shadow-1);
+
+      transition:
+        transform var(--dur-1) var(--ease),
+        box-shadow var(--dur-1) var(--ease),
+        background var(--dur-1) var(--ease),
+        border-color var(--dur-1) var(--ease);
+    }
+
+    .opt:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-2);
+      background: var(--bg);
+    }
+
+    .opt-left {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--s-3);
+      min-width: 0;
+    }
+
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      flex: 0 0 auto;
+    }
+    .dot.brand { background: var(--brand); border-color: var(--brand); }
+    .dot.found { background: var(--found); border-color: var(--found); }
+    .dot.lost  { background: var(--lost);  border-color: var(--lost);  }
+
+    .opt-text {
+      font-weight: 950;
+      font-size: 0.95rem;
+      color: var(--text);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .check {
+      font-weight: 1000;
+      font-size: 1rem;
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--text-muted);
+      opacity: 0.25;
+      transform: scale(0.98);
+      transition: opacity var(--dur-1) var(--ease), transform var(--dur-1) var(--ease);
+      flex: 0 0 auto;
+    }
+
+    .opt.selected {
+      border-color: var(--brand);
+      box-shadow: 0 0 0 4px var(--ring-brand);
+      background: var(--brand-soft);
+    }
+    .opt.selected .check {
+      opacity: 1;
+      transform: scale(1);
+      color: var(--surface);
+      background: var(--brand);
+      border-color: var(--brand);
+    }
+
+    .sort-hint {
+      font-size: 0.82rem;
+      font-weight: 900;
+      color: var(--text-muted);
+      margin-top: -0.1rem;
+    }
+  </style>
 </head>
 <body>
 
@@ -15,11 +177,10 @@
     <div class="topbar-left">
       <button class="icon-button" aria-label="Menu">≡</button>
 
-      <!-- โลโก้ -->
       <a class="brand-link" href="index.html" aria-label="ModFinder+ Home">
         <img
           class="brand-logo"
-          src="https://cdn.discordapp.com/attachments/1442576170464968714/1449460316424634398/CPE101_I16_LOST__FOUND.png?ex=693efa9d&is=693da91d&hm=a76a8c31f04b169308b856f064c14cf30b90be48acab8e2f54ffb46c81dfcb7e"
+          src="https://img5.pic.in.th/file/secure-sv1/CPE101_I16_LOST__FOUND.png"
           alt="ModFinder+"
         />
       </a>
@@ -29,28 +190,16 @@
       <a class="primary-button" href="post-form.html">Post</a>
 
       <div class="user-menu">
-        <button
-          class="user-button"
-          id="userBtn"
-          aria-haspopup="true"
-          aria-expanded="false"
-        >
+        <button class="user-button" id="userBtn" aria-haspopup="true" aria-expanded="false">
           <span class="user-avatar">👤</span>
           <span class="user-name" id="userNameTop">User</span>
         </button>
 
-        <!-- 🔽 Dropdown -->
         <div class="user-dropdown" id="userMenu" role="menu">
-          <button class="user-item" type="button">Profile</button>
-          <button class="user-item" type="button">My Posts</button>
+          <button class="user-item" type="button" data-action="profile">Profile</button>
+          <button class="user-item" type="button" data-action="my-posts">My Posts</button>
           <hr />
-          <button
-            class="user-item danger"
-            type="button"
-            id="logoutMenuBtn"
-          >
-            Logout
-          </button>
+          <button class="user-item danger" type="button" data-action="logout">Logout</button>
         </div>
       </div>
     </div>
@@ -76,25 +225,87 @@
         type="text"
         placeholder="Search by item name, description, or location..."
       />
-      <button
-        id="clearSearch"
-        class="search-clear"
-        aria-label="Clear"
-      >
-        ✕
-      </button>
+      <button id="clearSearch" class="search-clear" aria-label="Clear">✕</button>
     </section>
 
-    <section class="filter-row">
-      <button class="chip active" data-filter="all">All</button>
-      <button class="chip" data-filter="lost">Lost</button>
-      <button class="chip" data-filter="found">Found</button>
+    <section class="filter-bar" aria-label="Filters and sorting">
+      <div class="filter-row" aria-label="Filter">
+        <button class="chip active" data-filter="all">All</button>
+        <button class="chip" data-filter="lost">Lost</button>
+        <button class="chip" data-filter="found">Found</button>
+      </div>
+
+      <div class="sort-menu" aria-label="Sort">
+        <button
+          id="sortBtn"
+          class="sort-icon-btn"
+          type="button"
+          aria-label="Sort"
+          aria-haspopup="true"
+          aria-expanded="false"
+        >
+          ⇅
+        </button>
+
+        <div id="sortMenu" class="sort-dropdown" role="menu" aria-label="Sort menu">
+          <div class="sort-title">
+            <span>Sort</span>
+            <span style="font-weight:900; color: var(--text-muted); font-size: 0.85rem;">Options</span>
+          </div>
+
+          <div class="sort-block">
+            <div class="sort-label">Sort by</div>
+            <div class="opt-list" id="sortByList" role="radiogroup" aria-label="Sort by options">
+              <button class="opt" type="button" data-sortby="priority" role="radio" aria-checked="false">
+                <span class="opt-left">
+                  <span class="dot brand"></span>
+                  <span class="opt-text">Priority</span>
+                </span>
+                <span class="check">✓</span>
+              </button>
+
+              <button class="opt" type="button" data-sortby="time" role="radio" aria-checked="false">
+                <span class="opt-left">
+                  <span class="dot found"></span>
+                  <span class="opt-text">Post time</span>
+                </span>
+                <span class="check">✓</span>
+              </button>
+            </div>
+
+            <div class="sort-hint" id="sortHint">Priority: high → low</div>
+          </div>
+
+          <div class="sort-block">
+            <div class="sort-label">Order</div>
+
+            <div class="opt-list" id="sortDirList" role="radiogroup" aria-label="Order options">
+              <button class="opt" type="button" data-sortdir="desc" role="radio" aria-checked="false">
+                <span class="opt-left">
+                  <span class="dot lost"></span>
+                  <span class="opt-text" id="orderDescLabel">High → Low</span>
+                </span>
+                <span class="check">✓</span>
+              </button>
+
+              <button class="opt" type="button" data-sortdir="asc" role="radio" aria-checked="false">
+                <span class="opt-left">
+                  <span class="dot found"></span>
+                  <span class="opt-text" id="orderAscLabel">Low → High</span>
+                </span>
+                <span class="check">✓</span>
+              </button>
+            </div>
+
+            <div class="sort-hint">Tap an option to change ordering.</div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <section class="card-grid" id="itemGrid"></section>
   </main>
 
-  <!-- ================= Scripts ================= -->
   <script type="module" src="js/auth-guard.js"></script>
   <script type="module" src="js/ui.js"></script>
   <script type="module" src="js/main.js"></script>

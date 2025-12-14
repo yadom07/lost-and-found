@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Profile - ModFinder+</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/layout.css" />
+
+  <style>
+    .profile-grid { display: grid; gap: var(--s-4); }
+    .profile-head { display:flex; align-items:center; gap: var(--s-3); }
+    .avatar-lg{
+      width: 64px; height: 64px; border-radius: 999px;
+      border: 1px solid var(--border); overflow:hidden; background: var(--surface);
+      display:flex; align-items:center; justify-content:center; font-size: 1.4rem;
+    }
+    .avatar-lg img{ width:100%; height:100%; object-fit:cover; display:block; }
+    .muted { color: var(--text-muted); font-weight: 900; font-size: 0.9rem; }
+    .form-grid { display:grid; gap: var(--s-4); }
+    .grid-2 { display:grid; grid-template-columns: 1fr 1fr; gap: var(--s-4); }
+    @media (max-width:720px){ .grid-2{ grid-template-columns:1fr; } }
+    .field { display:grid; gap: var(--s-2); }
+    .hint { font-size: 0.85rem; font-weight: 900; color: var(--text-muted); margin-top: var(--s-1); }
+    .actions { display:flex; gap: var(--s-2); flex-wrap:wrap; }
+    .field-error { font-size: 0.85rem; font-weight: 900; color: var(--lost); }
+    .ok { color: var(--found); font-weight: 950; }
+  </style>
+</head>
+<body>
+
+  <!-- ✅ Header like index -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="icon-button" aria-label="Menu">≡</button>
+
+      <a class="brand-link" href="index.html" aria-label="ModFinder+ Home">
+        <img
+          class="brand-logo"
+          src="https://img5.pic.in.th/file/secure-sv1/CPE101_I16_LOST__FOUND.png"
+          alt="ModFinder+"
+        />
+      </a>
+    </div>
+
+    <div class="topbar-actions">
+      <a class="primary-button" href="post-form.html">Post</a>
+
+      <div class="user-menu">
+        <button class="user-button" id="userBtn" aria-haspopup="true" aria-expanded="false">
+          <span class="user-avatar">👤</span>
+          <span class="user-name" id="userNameTop">User</span>
+        </button>
+
+        <div class="user-dropdown" id="userMenu" role="menu">
+          <button class="user-item" type="button" data-action="profile">Profile</button>
+          <button class="user-item" type="button" data-action="my-posts">My Posts</button>
+          <hr />
+          <button class="user-item danger" type="button" data-action="logout">Logout</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main class="page">
+    <section class="card pad profile-grid">
+
+      <div class="profile-head">
+        <div class="avatar-lg" id="avatarLg">👤</div>
+        <div>
+          <div style="font-weight:1000; font-size:1.15rem;" id="profileName">User</div>
+          <div class="muted" id="profileEmail">-</div>
+        </div>
+      </div>
+
+      <form id="profileForm" class="form-grid" novalidate>
+        <div class="grid-2">
+          <div class="field">
+            <label for="fullName">Full name</label>
+            <input type="text" id="fullName" placeholder="Your name" />
+          </div>
+
+          <div class="field">
+            <label for="phone">Phone</label>
+            <input type="text" id="phone" placeholder="e.g. 0812345678" inputmode="tel" />
+            <div class="hint">Used when you select Phone as contact method.</div>
+          </div>
+
+          <div class="field">
+            <label for="lineId">LINE ID</label>
+            <input type="text" id="lineId" placeholder="e.g. @lineid" />
+          </div>
+
+          <div class="field">
+            <label for="instagram">Instagram</label>
+            <input type="text" id="instagram" placeholder="e.g. @username" />
+          </div>
+
+          <div class="field">
+            <label for="facebook">Facebook</label>
+            <input type="text" id="facebook" placeholder="e.g. Jane Doe or URL" />
+          </div>
+
+          <div class="field">
+            <label for="contactPreference">Preferred contact</label>
+            <select id="contactPreference">
+              <option value="">Select preference</option>
+              <option value="email">Email</option>
+              <option value="phone">Phone</option>
+              <option value="line">LINE</option>
+              <option value="instagram">Instagram</option>
+              <option value="facebook">Facebook</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button class="primary-button" type="submit">Save changes</button>
+          <a class="secondary-button" href="my-posts.html">Go to My Posts</a>
+        </div>
+
+        <div id="saveMsg" class="field-error" aria-live="polite"></div>
+      </form>
+
+    </section>
+  </main>
+
+  <script type="module" src="js/auth-guard.js"></script>
+  <script type="module" src="js/ui.js"></script>
+  <script type="module" src="js/profile.js"></script>
+</body>
+</html>

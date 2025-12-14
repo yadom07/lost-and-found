@@ -23,7 +23,6 @@
     }
     @media (max-width: 720px) { .post-form-page .grid-2 { grid-template-columns: 1fr; } }
 
-    /* ✅ ทุกช่องให้สูงเท่ากัน */
     .post-form-page input[type="text"],
     .post-form-page input[type="email"],
     .post-form-page input[type="file"],
@@ -35,7 +34,6 @@
       font-weight: 900;
     }
 
-    /* ✅ Description: เริ่มต้นสูงเท่าช่องอื่น แต่ขยายได้ */
     .post-form-page textarea {
       height: var(--control-h);
       min-height: var(--control-h);
@@ -106,7 +104,6 @@
     .contact-value-wrap { display: none; }
     .contact-value-wrap.show { display: block; }
 
-    /* ✅ Section UI */
     .form-section {
       border: 1px solid var(--border);
       background: var(--surface);
@@ -134,24 +131,33 @@
 </head>
 
 <body class="post-form-page">
+
+  <!-- ✅ Header like index -->
   <header class="topbar">
     <div class="topbar-left">
-      <button class="icon-button" onclick="history.back()" aria-label="Back">←</button>
-      <div class="topbar-title">Create Post</div>
+      <button class="icon-button" aria-label="Menu">≡</button>
+
+      <a class="brand-link" href="index.html" aria-label="ModFinder+ Home">
+        <img
+          class="brand-logo"
+          src="https://img5.pic.in.th/file/secure-sv1/CPE101_I16_LOST__FOUND.png"
+          alt="ModFinder+"
+        />
+      </a>
     </div>
 
     <div class="topbar-actions">
-      <a class="secondary-button" href="index.html">Home</a>
+      <a class="primary-button" href="post-form.html">Post</a>
 
       <div class="user-menu">
         <button class="user-button" id="userBtn" aria-haspopup="true" aria-expanded="false">
           <span class="user-avatar">👤</span>
-          <span class="user-name" id="userName">User</span>
+          <span class="user-name" id="userNameTop">User</span>
         </button>
 
         <div class="user-dropdown" id="userMenu" role="menu">
-          <button class="user-item" type="button">Profile</button>
-          <button class="user-item" type="button">My Posts</button>
+          <button class="user-item" type="button" data-action="profile">Profile</button>
+          <button class="user-item" type="button" data-action="my-posts">My Posts</button>
           <hr />
           <button class="user-item danger" type="button" data-action="logout">Logout</button>
         </div>
@@ -165,11 +171,9 @@
 
       <form id="postForm" class="form-grid" novalidate>
 
-        <!-- ✅ ซ่อน Posted by แต่ยังมี input ไว้ให้ post-form.js ใช้ -->
         <input type="text" id="posterName" class="readonly" style="display:none;" readonly />
         <div class="field-error" id="posterNameError" aria-live="polite" style="display:none;"></div>
 
-        <!-- ✅ SECTION: Item details (ย้ายขึ้นก่อน Contact) -->
         <div class="form-section">
           <div class="form-section-title">
             <span>Item details</span>
@@ -198,7 +202,6 @@
           </div>
         </div>
 
-        <!-- ✅ SECTION: Contact + Description (ย้ายลงหลัง Item details) -->
         <div class="form-section">
           <div class="form-section-title">
             <span>Contact</span>
@@ -240,7 +243,6 @@
           </div>
         </div>
 
-        <!-- ✅ SECTION: Location -->
         <div class="form-section">
           <div class="form-section-title">
             <span>Location</span>
