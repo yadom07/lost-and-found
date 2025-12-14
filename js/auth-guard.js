@@ -5,14 +5,12 @@ const PUBLIC_PAGES = ["login.html", "register.html"];
 const currentPage = window.location.pathname.split("/").pop() || "index.html";
 
 onAuthStateChanged(auth, (user) => {
-  // ถ้ายังไม่ login และไม่ใช่หน้า public → เด้งไป login
+  // ยังไม่ login และไม่ใช่หน้า public → เด้งไป login
   if (!user && !PUBLIC_PAGES.includes(currentPage)) {
     window.location.replace("login.html");
     return;
   }
 
-  // ถ้า login แล้ว แต่ยังอยู่หน้า login / register → ส่งเข้า index
-  if (user && PUBLIC_PAGES.includes(currentPage)) {
-    window.location.replace("index.html");
-  }
+  // ❌ ห้าม redirect หน้า login / register อัตโนมัติ
+  // ให้ login.js / register.js redirect เอง
 });
