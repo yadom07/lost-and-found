@@ -6,7 +6,7 @@ const LOGOS = [
   "https://img5.pic.in.th/file/secure-sv1/CPE101_I16_LOST__FOUND.png",
 ];
 
-const INTERVAL_MS = 5000;
+const INTERVAL_MS = 4000;
 const FADE_MS = 600;
 
 const img = document.getElementById("brandLogo");
@@ -29,4 +29,5 @@ if (img) {
       img.style.opacity = "1";
     }, FADE_MS);
   }, INTERVAL_MS);
+
 }
